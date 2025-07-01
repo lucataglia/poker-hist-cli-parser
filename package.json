@@ -1,0 +1,21 @@
+{
+  "name": "poker-cli",
+  "version": "1.0.0",
+  "description": "CLI Helper tool ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Luca Tagliabue",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "4.1.2",
+    "eslint": "^7.32.0 || ^8.2.0",
+    "minimist": "^1.2.8",
+    "poker-odds-calc": "^0.0.14"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2"
+  }
+}
