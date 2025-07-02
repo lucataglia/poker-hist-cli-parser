@@ -21,24 +21,28 @@ To run the script, you need to provide three mandatory inputs:
 Once you provide these, the script will process the relevant files and display the extracted stats for you to enjoy and analyze.
 
 ## Example usage
+
 Before running the script, make sure you have [Node.js](https://nodejs.org/) installed on your computer.
 
 1. Clone this repository and navigate to its root folder:
+
 ```bash
 git clone <repo-url>
 cd <repo-folder>
-````
+```
 
 2. Install the required dependencies:
+
 ```bash
 npm install
-````
+```
 
 3. Run the script from the root of the repository with the required parameters:
 
 ```bash
 node index.js --dir=/Users/janedoe/poker-history/ --timestamp=20250101 --name=JaneDoe
 ```
+
 This command will parse the files located in the `/Users/janedoe/poker-history/` folder, starting from the date `20250101`, and analyze the all-in statistics for the player named `JaneDoe`.
 
 ## How to read the output
@@ -53,14 +57,15 @@ K ☘️ Q 🔷 ~42.53% 870 (1740) HOLE CARDS
 (1) 8d As - (5) Kc Qd blinds: 90/180
 ```
 
-
 ### What does this mean?
 
 - The **percentage** (e.g. `~47.01%`) represents your **equity** — your chance of winning the pot with the given hand at that moment.
+
   - If the percentage is **<span style="color: green;">green</span>**, it means your equity is **greater than or equal to 50%**.
   - If the percentage is **<span style="color: red;">red</span>**, it means your equity is **less than 50%**.
 
 - The numbers like `1260 (1080)` show:
+
   - **1260**: Your chip count at the time of the all-in.
   - **(1080)**: The size of the pot for that all-in hand.
 
@@ -81,7 +86,6 @@ If you want to learn more about poker equity and how it’s calculated, check ou
 - [PokerBankrollApp: Understanding Poker Equity](https://www.pokerbankrollapp.com/Understanding-Poker-Equity-A-Simple-Guide-to-Calculating-Your-Winning-Chances/)
 - [PokerSciences: Simple Guide to Calculate Poker Equity](https://www.pokersciences.com/en/articles/equity-poker-simple-guide-calculate)
 
-
 ## Credits
 
 This project uses the following open-source libraries:
@@ -91,3 +95,8 @@ This project uses the following open-source libraries:
 
 - **[poker-odds-calc](https://www.npmjs.com/package/poker-odds-calc)** — A library to calculate poker hand odds.  
   Licensed under the MIT License.
+
+## License
+
+This project is licensed under the MIT License.  
+See the [MIT](./LICENSE) file for details.
