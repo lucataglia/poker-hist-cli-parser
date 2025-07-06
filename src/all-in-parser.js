@@ -1,7 +1,7 @@
 const { TexasHoldem } = require('poker-odds-calc');
 const chalk = require('chalk');
 const argv = require('minimist')(process.argv.slice(2));
-const { prettyHand, prettyBoard, printEquityStats } = require('./helpers');
+const { prettyHand, prettyBoard } = require('./helpers');
 
 let lessThenFifty = 0;
 let moreThanFifty = 0;
@@ -22,26 +22,36 @@ const { name: argvName } = argv;
 const allInParser = (data) => {
   data
     .split('PokerStars Hand')
+    .map((hand, index) => ({ hand, index }))
     // Take only the hand that contained an all-in
-    .filter((hand) => hand.includes('all-in') && hand.includes('and won'))
-    .map((str) => {
-      const res = str.split('\n').reduce(({
-        hand, mode, allIn, board, players, totalPot, myChips, smallBlind, bigBlind,
+    .filter(({ hand }) => hand.includes('all-in') && hand.includes('and won'))
+    .map(({ hand: h, index }) => {
+      const res = h.split('\n').reduce(({
+        hand, mode, allIn, board, players, totalPot, myChips, smallBlind, bigBlind, dealerSeat, isCaller,
       }, row) => {
         switch (mode) {
           case MODE.init: {
-            if (row.includes(MODE.holeCards)) {
-              return {
-                allIn,
-                board,
-                hand: { ...hand, holeCards: row },
-                mode: MODE.holeCards,
-                players,
-                totalPot,
-                myChips,
-                smallBlind,
-                bigBlind,
-              };
+            if (row.includes('is the button')) {
+              const regex = /#(\d+)/;
+              const match = row.match(regex);
+
+              if (match) {
+                const newDealerSeat = match[1];
+                return {
+                  allIn,
+                  board,
+                  hand,
+                  mode,
+                  players,
+                  totalPot,
+                  myChips,
+                  smallBlind,
+                  bigBlind,
+                  handsCount: index + 1,
+                  dealerSeat: newDealerSeat,
+                  isCaller,
+                };
+              }
             }
 
             if (row.toLowerCase().includes('small blind')) {
@@ -56,6 +66,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind: newSmallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -71,6 +84,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind,
                 bigBlind: newBigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -90,6 +106,26 @@ const allInParser = (data) => {
                 myChips: newMyChips,
                 smallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
+              };
+            }
+
+            if (row.includes(MODE.holeCards)) {
+              return {
+                allIn,
+                board,
+                hand: { ...hand, holeCards: row },
+                mode: MODE.holeCards,
+                players,
+                totalPot,
+                myChips,
+                smallBlind,
+                bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -103,10 +139,30 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             };
           }
 
           case MODE.holeCards: {
+            if (row.includes(`${argvName}: calls`)) {
+              return {
+                allIn,
+                board,
+                hand: { ...hand, flop: row },
+                mode: MODE.flop,
+                players,
+                totalPot,
+                myChips,
+                smallBlind,
+                bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller: true,
+              };
+            }
+
             if (row.includes(MODE.flop)) {
               return {
                 allIn,
@@ -118,6 +174,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -133,6 +192,9 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             };
           }
 
@@ -148,6 +210,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -172,6 +237,9 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             };
           }
 
@@ -187,6 +255,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -215,6 +286,9 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             };
           }
 
@@ -230,6 +304,9 @@ const allInParser = (data) => {
                 myChips,
                 smallBlind,
                 bigBlind,
+                handsCount: index + 1,
+                dealerSeat,
+                isCaller,
               };
             }
 
@@ -258,6 +335,9 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             };
           }
 
@@ -300,6 +380,9 @@ const allInParser = (data) => {
               myChips,
               smallBlind,
               bigBlind,
+              handsCount: index + 1,
+              dealerSeat,
+              isCaller,
             }; }
         }
       }, {
@@ -314,11 +397,15 @@ const allInParser = (data) => {
         myChips: undefined,
         smallBlind: undefined,
         bigBlind: undefined,
+        handsCount: undefined,
+        dealerSeat: undefined,
+        isCaller: undefined,
       });
 
       return res;
-    }).forEach(({
-      allIn, players, board, totalPot, myChips, smallBlind, bigBlind,
+    })
+    .forEach(({
+      allIn, players, board, totalPot, myChips, smallBlind, bigBlind, handsCount, dealerSeat, isCaller,
     }) => {
       const table = new TexasHoldem();
 
@@ -357,6 +444,7 @@ const allInParser = (data) => {
             lessThenFifty += 1;
           }
 
+          const callOrRaiseIcon = isCaller ? '🎯' : '🚀';
           const colorFn = p.getWinsPercentage() >= 50 ? chalk.green : chalk.red;
           const handPrint = prettyHand(p.getHand()).padEnd(15);
           const percentagePrint = colorFn(`${p.getWinsPercentageString().padStart(7)}   ${totalPotPrint} \t`);
@@ -364,13 +452,14 @@ const allInParser = (data) => {
           const allInPrint = allIn?.padEnd(15);
           const boardPrint = board ? `${allInPrint} ${prettyBoard(board)}` : allInPrint || 'FORCED';
 
-          console.log(` ${handPrint} ${percentagePrint} ${tiePrint} \t ${boardPrint}`);
-          console.log(`${otherCards} \t blinds: ${smallBlind}/${bigBlind}\n`);
+          console.log(`[${handsCount}] ${callOrRaiseIcon}  ${handPrint} ${percentagePrint} ${tiePrint} \t ${boardPrint}`);
+          console.log(`${otherCards} \t dealer: (${dealerSeat}) \t blinds: ${smallBlind}/${bigBlind}\n`);
         });
     });
 
-  console.log(`\n${chalk.cyan(printEquityStats(moreThanFifty, lessThenFifty, wins, looses))}`);
-  console.log('\n\n\n\n');
+  return {
+    moreThanFifty, lessThenFifty, wins, looses,
+  };
 };
 
 module.exports = { allInParser };

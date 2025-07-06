@@ -145,6 +145,39 @@ function frameString(str) {
 
   return lines.join('\n');
 }
+
+function extractTimeFromFilename(filename) {
+  const regex = /HH(\d{8})/;
+  const match = filename.match(regex);
+
+  if (match) {
+    return match[1];
+  }
+
+  return null;
+}
+
+function parseDateAndTime(filename) {
+  const regex = /HH(\d{8})/;
+  const match = filename.match(regex);
+
+  if (match) {
+    const dateStr = match[1];
+    const year = dateStr.slice(0, 4);
+    const month = dateStr.slice(4, 6);
+    const day = dateStr.slice(6, 8);
+
+    return `${day}/${month}/${year}`;
+  }
+
+  return null;
+}
+
 module.exports = {
-  prettyHand, prettyBoard, printEquityStats, frameString,
+  extractTimeFromFilename,
+  frameString,
+  parseDateAndTime,
+  prettyBoard,
+  prettyHand,
+  printEquityStats,
 };
