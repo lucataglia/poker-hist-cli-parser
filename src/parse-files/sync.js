@@ -12,11 +12,11 @@ function parseFileSync(filePath, filename, argvName, isLast) {
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
 
   const {
-    moreThanFifty, lessThenFifty, wins, looses,
+    moreThanFifty, lessThenFifty, wins, looses, total, itm,
   } = allInParser(fileContent);
 
   if (isLast) {
-    console.log(`\n${chalk.cyan(printEquityStats(moreThanFifty, lessThenFifty, wins, looses))}`);
+    console.log(`\n${chalk.cyan(printEquityStats(moreThanFifty, lessThenFifty, wins, looses, total, itm))}`);
     console.log('\n\n\n\n');
   } else {
     console.log('\n\n\n\n');

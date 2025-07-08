@@ -44,6 +44,8 @@ function printEquityStats(
   allInUnder50,
   wins,
   losses,
+  total,
+  itm,
   header = 'Stats current session',
 ) {
   // Convert numbers to strings
@@ -56,6 +58,8 @@ function printEquityStats(
   const winsStr = wins.toString();
   const lossesStr = losses.toString();
   const plusMinusWinsStr = plusMinusWins.toString();
+  const totalStr = total.toString();
+  const itmStr = itm.toString();
 
   // Labels
   const label1 = 'All-in ≥ 50% Equity';
@@ -64,6 +68,8 @@ function printEquityStats(
   const label4 = 'Losses';
   const label5 = 'Plus/Minus';
   const label6 = 'Plus/Minus Wins';
+  const label7 = 'Total';
+  const label8 = 'ITM';
 
   // Calculate max label length and max value length to align nicely
   const maxLabelLength = Math.max(
@@ -72,6 +78,7 @@ function printEquityStats(
     label3.length,
     label4.length,
     label5.length,
+    label7.length,
   );
 
   const maxValueLength = Math.max(
@@ -81,6 +88,7 @@ function printEquityStats(
     winsStr.length,
     lossesStr.length,
     plusMinusWinsStr.length,
+    itmStr.length,
   );
 
   // Calculate content width (label + padding + value)
@@ -127,6 +135,10 @@ function printEquityStats(
   lines.push(`│ ${padRight('', maxLabelLength)}  ${padLeft('', maxValueLength)} │`);
   lines.push(`│ ${padRight(label5, maxLabelLength)}  ${padLeft(plusMinusStr, maxValueLength)} │`);
   lines.push(`│ ${padRight(label6, maxLabelLength)}  ${padLeft(plusMinusWinsStr, maxValueLength)} │`);
+  lines.push(`│ ${padRight('', maxLabelLength)}  ${padLeft('', maxValueLength)} │`);
+  lines.push(`│ ${padRight('', maxLabelLength)}  ${padLeft('', maxValueLength)} │`);
+  lines.push(`│ ${padRight(label7, maxLabelLength)}  ${padLeft(totalStr, maxValueLength)} │`);
+  lines.push(`│ ${padRight(label8, maxLabelLength)}  ${padLeft(itmStr, maxValueLength)} │`);
   lines.push(`└${horizontalLine}┘`);
 
   // Join lines with newline and return
