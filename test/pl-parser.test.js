@@ -32,3 +32,9 @@ test('parsePL: buy-in parsed from header, not hardcoded', () => {
   assert.strictEqual(r.prize, 0);
   assert.strictEqual(r.pl, -0.5);
 });
+
+test('parsePL: integer prize amount without decimals is parsed', () => {
+  const content = "PokerStars Hand #1: Tournament #9, €0.91+€0.09 EUR Hold'em No Limit\nTestHero wins the tournament and receives €2 - congratulations!\n";
+  const r = parsePL(content, 'TestHero');
+  assert.strictEqual(r.prize, 2);
+});
