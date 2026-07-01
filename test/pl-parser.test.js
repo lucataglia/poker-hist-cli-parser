@@ -38,3 +38,9 @@ test('parsePL: integer prize amount without decimals is parsed', () => {
   const r = parsePL(content, 'TestHero');
   assert.strictEqual(r.prize, 2);
 });
+
+test('parsePL: three-part (bounty/PKO) buy-in sums all parts', () => {
+  const content = "PokerStars Hand #1: Tournament #9, €4.60+€4.60+€0.80 EUR Hold'em No Limit\n";
+  const r = parsePL(content, 'TestHero');
+  assert.strictEqual(r.buyIn, 10);
+});

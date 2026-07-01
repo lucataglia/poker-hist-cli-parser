@@ -244,6 +244,8 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
   return lines.join('\n');
 }
 
+const round2 = (n) => Math.round(n * 100) / 100;
+
 module.exports = {
   extractTimeFromFilename,
   formatDateShortIt,
@@ -253,4 +255,5 @@ module.exports = {
   prettyHand,
   printEquityStats,
   renderPLChart,
+  round2,
 };

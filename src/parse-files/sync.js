@@ -3,7 +3,7 @@ const path = require('path');
 const chalk = require('chalk');
 const { allInParser } = require('../all-in-parser');
 const {
-  frameString, parseDateAndTime, extractTimeFromFilename, printEquityStats,
+  frameString, parseDateAndTime, extractTimeFromFilename, printEquityStats, round2,
 } = require('../helpers');
 const { parsePL } = require('../pl-parser');
 
@@ -49,8 +49,6 @@ function parseAllOldFiles(directoryArgv, timeFilterArgv, argvName, displayName) 
     });
   });
 }
-
-const round2 = (n) => Math.round(n * 100) / 100;
 
 // Read all HH* files at/after timeFilter, compute per-tournament P/L, and
 // aggregate into one entry per calendar day sorted chronologically.

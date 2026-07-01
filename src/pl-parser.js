@@ -1,15 +1,24 @@
-const round2 = (n) => Math.round(n * 100) / 100;
+const { round2 } = require('./helpers');
 
-// Parse the first "€X.XX+€Y.YY" occurrence from the header and sum both parts.
-// Handles both '.' and ',' as decimal separator. Falls back to 1 EUR.
+// Parse the buy-in span (€amount+€amount+... followed by a space and currency code)
+// and sum ALL €-parts. Handles both '.' and ',' as decimal separator. Falls back to 1 EUR.
 function parseBuyIn(fileContent) {
-  const match = fileContent.match(/€\s*(\d+(?:[.,]\d+)?)\s*\+\s*€\s*(\d+(?:[.,]\d+)?)/);
-  if (!match) {
+  // Match the full buy-in expression: one or more "€amount" separated by "+"
+  // that appears before " EUR" (or end-of-line) in the header.
+  const spanMatch = fileContent.match(/(€\s*\d+(?:[.,]\d+)?(?:\s*\+\s*€\s*\d+(?:[.,]\d+)?)+)/);
+  if (!spanMatch) {
     return 1;
   }
-  const a = parseFloat(match[1].replace(',', '.'));
-  const b = parseFloat(match[2].replace(',', '.'));
-  return round2(a + b);
+  const span = spanMatch[1];
+  const parts = span.match(/€\s*(\d+(?:[.,]\d+)?)/g);
+  if (!parts) {
+    return 1;
+  }
+  const total = parts.reduce((sum, part) => {
+    const num = parseFloat(part.replace(/€\s*/, '').replace(',', '.'));
+    return sum + num;
+  }, 0);
+  return round2(total);
 }
 
 // Sum every "<player> ... receives €X" line (there is at most one per tournament,

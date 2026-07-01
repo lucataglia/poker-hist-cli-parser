@@ -23,14 +23,15 @@ const MODE = {
 const { name: argvName, anonymize: argvAnonymyze } = argv;
 const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
 
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Replace every occurrence of the real name with the display name (String.replace
 // only swaps the first match, which left the name visible on lines mentioning it twice).
 const anonymize = (str) => {
   if (!argvAnonymyze || !argvName) {
     return str;
   }
-  const escaped = argvName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return str.replace(new RegExp(escaped, 'g'), anonymousName);
+  return str.replace(new RegExp(escapeRegExp(argvName), 'g'), anonymousName);
 };
 
 const allInParser = (data) => {
@@ -39,7 +40,7 @@ const allInParser = (data) => {
   // Count an in-the-money finish for this tournament: PokerStars writes
   // "<name> ... receives €X" when the hero cashes. Scanned over the whole file
   // (not only all-in hands), and only once per tournament.
-  const itmRegex = new RegExp(`^${argvName}\\b.*\\breceives\\b`, 'm');
+  const itmRegex = new RegExp(`^${escapeRegExp(argvName)}\\b.*\\breceives\\b`, 'm');
   if (itmRegex.test(data)) {
     itm += 1;
   }
