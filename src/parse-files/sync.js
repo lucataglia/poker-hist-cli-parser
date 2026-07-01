@@ -6,8 +6,9 @@ const {
   frameString, parseDateAndTime, extractTimeFromFilename, printEquityStats,
 } = require('../helpers');
 
-function parseFileSync(filePath, filename, argvName, isLast) {
-  console.log(`${frameString(`${filename} - ${parseDateAndTime(filename)} - ${argvName}`)}\n\n`);
+function parseFileSync(filePath, filename, argvName, displayName, isLast) {
+  const headerName = displayName || argvName;
+  console.log(`${frameString(`${filename} - ${parseDateAndTime(filename)} - ${headerName}`)}\n\n`);
 
   const fileContent = fs.readFileSync(filePath, { encoding: 'utf8' });
 
@@ -23,25 +24,27 @@ function parseFileSync(filePath, filename, argvName, isLast) {
   }
 }
 
-function parseAllOldFiles(directoryArgv, timeFilterArgv, argvName) {
+function parseAllOldFiles(directoryArgv, timeFilterArgv, argvName, displayName) {
   fs.readdir(directoryArgv, (err, files) => {
     if (err) {
       console.error(chalk.red('Errore nella lettura della directory:'), err);
       return;
     }
 
+    const timeFilter = Number(timeFilterArgv);
+
     const hhFiles = files
       .filter((file) => file.startsWith('HH'))
       .filter((file) => {
         const time = extractTimeFromFilename(file);
-        return time >= timeFilterArgv;
+        return time !== null && Number(time) >= timeFilter;
       })
       .sort((a, b) => a.localeCompare(b));
 
     hhFiles.forEach((filename, index) => {
       const fullPath = path.join(directoryArgv, filename);
 
-      parseFileSync(fullPath, filename, argvName, index === hhFiles.length - 1);
+      parseFileSync(fullPath, filename, argvName, displayName, index === hhFiles.length - 1);
     });
   });
 }

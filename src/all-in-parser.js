@@ -20,10 +20,29 @@ const MODE = {
   summary: 'SUMMARY',
 };
 
-const { name: argvName } = argv;
+const { name: argvName, anonymize: argvAnonymyze } = argv;
+const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
+
+// Replace every occurrence of the real name with the display name (String.replace
+// only swaps the first match, which left the name visible on lines mentioning it twice).
+const anonymize = (str) => {
+  if (!argvAnonymyze || !argvName) {
+    return str;
+  }
+  const escaped = argvName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return str.replace(new RegExp(escaped, 'g'), anonymousName);
+};
 
 const allInParser = (data) => {
   total += 1;
+
+  // Count an in-the-money finish for this tournament: PokerStars writes
+  // "<name> ... receives €X" when the hero cashes. Scanned over the whole file
+  // (not only all-in hands), and only once per tournament.
+  const itmRegex = new RegExp(`^${argvName}\\b.*\\breceives\\b`, 'm');
+  if (itmRegex.test(data)) {
+    itm += 1;
+  }
 
   data
     .split('PokerStars Hand')
@@ -250,7 +269,6 @@ const allInParser = (data) => {
 
             const cashWinningsRegex = new RegExp(`^${argvName}.*\\b(receives|received)\\b`);
             if (row.match(cashWinningsRegex)) {
-              itm += 1;
               return {
                 ...acc,
                 cashWinnings: row,
@@ -360,7 +378,7 @@ const allInParser = (data) => {
         .forEach((p, index) => {
           const { name, isWinner } = players[index];
 
-          if (!name.includes('Jeff')) {
+          if (!name.includes(argvName)) {
             return;
           }
 
@@ -395,10 +413,10 @@ const allInParser = (data) => {
 
           const otherCards = players.map(({ cards, seat }) => `(${seat}) ${cards}`).join(' - ');
 
-          console.log(`[${handsCount}] ${callOrRaiseIcon}  ${handPrint} ${percentagePrint} ${tiePrint} ${boardPrint}`);
-          console.log(`${otherCards} \t dealer: (${dealerSeat}) \t blinds: ${smallBlind}/${bigBlind}`);
-          console.log(`${chalk.yellow(allInResultDesc)}: ${chalk.yellowBright(fullBoard)}`);
-          console.log(cashWinnings ? `${chalk.green(cashWinnings)}\n` : '\n');
+          console.log(anonymize(`[${handsCount}] ${callOrRaiseIcon}  ${handPrint} ${percentagePrint} ${tiePrint} ${boardPrint}`));
+          console.log(anonymize(`${otherCards} \t dealer: (${dealerSeat}) \t blinds: ${smallBlind}/${bigBlind}`));
+          console.log(anonymize(`${chalk.yellow(allInResultDesc)}: ${chalk.yellowBright(fullBoard)}`));
+          console.log(cashWinnings ? anonymize(`${chalk.green(cashWinnings)}\n`) : '\n');
         });
     });
 

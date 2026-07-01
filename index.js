@@ -10,7 +10,7 @@ if (missingFields.length > 0) {
 
   console.log('\n');
 
-  console.error(chalk.yellow('Missing mandatory missing\n\n'));
+  console.error(chalk.yellow('Missing mandatory fields\n\n'));
   console.table(tableData);
 
   console.log('\n');
@@ -24,7 +24,13 @@ if (missingFields.length > 0) {
 console.clear();
 
 const directoryArgv = argv.dir || './';
-const { timestamp: timeFilterArgv } = argv;
-const { name: argvName } = argv;
+const {
+  timestamp: timeFilterArgv,
+  name: argvName,
+  anonymize: argvAnonymyze,
+} = argv;
 
-parseAllOldFiles(directoryArgv, timeFilterArgv, argvName);
+const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
+
+// The real name (argvName) drives parsing; anonymousName is only for display.
+parseAllOldFiles(directoryArgv, timeFilterArgv, argvName, anonymousName);
