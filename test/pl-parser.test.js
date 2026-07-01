@@ -11,18 +11,20 @@ const read = (name) => fs.readFileSync(path.join(FIXTURES, name), 'utf8');
 const LOST = "HH20260101 T1000000001 No Limit Hold'em €0,91 + €0,09.txt";
 const WON = "HH20260102 T1000000002 No Limit Hold'em €0,91 + €0,09.txt";
 
-test('parsePL: hero busts without cashing -> pl = -buyIn', () => {
+test('parsePL: hero busts without cashing -> pl = -buyIn, not won', () => {
   const r = parsePL(read(LOST), 'TestHero');
   assert.strictEqual(r.prize, 0);
   assert.strictEqual(r.buyIn, 1);
   assert.strictEqual(r.pl, -1);
+  assert.strictEqual(r.won, false);
 });
 
-test('parsePL: hero wins tournament -> prize counted, pl positive', () => {
+test('parsePL: hero wins tournament -> prize counted, pl positive, won', () => {
   const r = parsePL(read(WON), 'TestHero');
   assert.strictEqual(r.prize, 2);
   assert.strictEqual(r.buyIn, 1);
   assert.strictEqual(r.pl, 1);
+  assert.strictEqual(r.won, true);
 });
 
 test('parsePL: buy-in parsed from header, not hardcoded', () => {

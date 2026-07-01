@@ -65,11 +65,25 @@ function buildDailyPL(directory, timeFilter, playerName) {
   files.forEach((filename) => {
     const date = extractTimeFromFilename(filename);
     const content = fs.readFileSync(path.join(directory, filename), 'utf8');
-    const { pl } = parsePL(content, playerName);
+    const { pl, prize, won } = parsePL(content, playerName);
 
-    const entry = byDay.get(date) || { date, pl: 0, games: 0 };
+    const entry = byDay.get(date) || {
+      date, pl: 0, games: 0, wins: 0, itm: 0, losses: 0,
+    };
     entry.pl = round2(entry.pl + pl);
     entry.games += 1;
+    // wins = tournaments won (1st place); itm = tournaments where the hero cashed
+    // (received a prize); losses = neither. In a winner-take-all these coincide,
+    // but they are tracked separately so multi-payout formats stay correct.
+    if (won) {
+      entry.wins += 1;
+    }
+    if (prize > 0) {
+      entry.itm += 1;
+    }
+    if (!won && prize <= 0) {
+      entry.losses += 1;
+    }
     byDay.set(date, entry);
   });
 

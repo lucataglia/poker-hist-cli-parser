@@ -35,10 +35,22 @@ function parsePrize(fileContent, playerName) {
   return round2(total);
 }
 
+// True when the hero won the tournament (finished 1st). PokerStars writes
+// "<player> wins the tournament ...". Distinct from cashing (prize > 0), which
+// in payout structures paying more than one place can happen without winning.
+function parseWon(fileContent, playerName) {
+  const escaped = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`^${escaped}\\b.*\\bwins the tournament\\b`, 'm');
+  return re.test(fileContent);
+}
+
 function parsePL(fileContent, playerName) {
   const buyIn = parseBuyIn(fileContent);
   const prize = parsePrize(fileContent, playerName);
-  return { prize, buyIn, pl: round2(prize - buyIn) };
+  const won = parseWon(fileContent, playerName);
+  return {
+    prize, buyIn, pl: round2(prize - buyIn), won,
+  };
 }
 
 module.exports = { parsePL };

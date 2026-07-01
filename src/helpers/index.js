@@ -160,15 +160,15 @@ function frameString(str) {
   return lines.join('\n');
 }
 
-const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-function formatDateShortIt(yyyymmdd) {
+function formatDateShort(yyyymmdd) {
   if (typeof yyyymmdd !== 'string' || !/^\d{8}$/.test(yyyymmdd)) {
     return yyyymmdd;
   }
   const day = yyyymmdd.slice(6, 8);
   const monthIndex = Number(yyyymmdd.slice(4, 6)) - 1;
-  const month = MONTHS_IT[monthIndex];
+  const month = MONTHS[monthIndex];
   if (!month) {
     return yyyymmdd;
   }
@@ -213,8 +213,6 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
   }
 
   const maxAbs = dailyData.reduce((m, d) => Math.max(m, Math.abs(d.pl)), 0);
-  const label = (d) => formatDateShortIt(d.date);
-  const labelWidth = dailyData.reduce((m, d) => Math.max(m, label(d).length), 0);
 
   const barLen = (pl) => {
     if (maxAbs === 0 || pl === 0) {
@@ -223,32 +221,60 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
     return Math.max(1, Math.round((Math.abs(pl) / maxAbs) * maxBarWidth));
   };
 
-  const lines = dailyData.map((d) => {
-    const lbl = label(d).padEnd(labelWidth);
+  // The left side of each row (date + record + game count) has a variable width,
+  // and the colored numbers carry invisible ANSI codes. Build a plain version for
+  // measuring/alignment and a colored version for display, then pad by visible width.
+  // The record is bare numbers "[W ITM L]"; a legend line above maps color -> meaning.
+  const rows = dailyData.map((d) => {
+    const wins = d.wins || 0;
+    const itm = d.itm || 0;
+    const losses = d.losses || 0;
+    const date = formatDateShort(d.date);
+
+    // Record "[W(ITM) L]": bare numbers, W green, ITM (a subset of W) bright blue
+    // in parentheses next to W, L red. A legend line above maps color -> meaning.
+    const recordPlain = `[${wins}(${itm}) ${losses}]`;
+    const recordColored = `[${chalk.green(wins)}(${chalk.blueBright(itm)}) ${chalk.red(losses)}]`;
+    const games = `(${d.games})`;
+
+    const plainLeft = `${date} ${recordPlain} ${games}`;
+    const coloredLeft = `${date} ${recordColored} ${games}`;
+    return {
+      d, plainLeft, coloredLeft, plainWidth: plainLeft.length,
+    };
+  });
+
+  const leftWidth = rows.reduce((m, r) => Math.max(m, r.plainWidth), 0);
+
+  const lines = rows.map(({ d, coloredLeft, plainWidth }) => {
+    const leftPad = ' '.repeat(leftWidth - plainWidth);
+    const left = `${coloredLeft}${leftPad}`;
     const len = barLen(d.pl);
     const value = `${d.pl >= 0 ? '' : '-'}${Math.abs(d.pl).toFixed(2)}€`;
-    const games = `(${d.games})`;
 
     if (d.pl < 0) {
       const bar = chalk.dim.red(BAR_CHAR.repeat(len));
       const pad = ' '.repeat(maxBarWidth - len);
-      return `${lbl} ${pad}${bar}│ ${value} ${games}`;
+      return `${left} ${pad}${bar}│ ${value}`;
     }
     const bar = chalk.dim.green(BAR_CHAR.repeat(len));
-    return `${lbl} ${' '.repeat(maxBarWidth)}│${bar} ${value} ${games}`;
+    return `${left} ${' '.repeat(maxBarWidth)}│${bar} ${value}`;
   });
 
-  const axisPad = ' '.repeat(labelWidth + 1 + maxBarWidth);
+  const axisPad = ' '.repeat(leftWidth + 1 + maxBarWidth);
   lines.push(`${axisPad}┴`);
 
-  return lines.join('\n');
+  // Legend maps each colored number position to its meaning. ITM is a subset of W.
+  const legend = `Legend: [${chalk.green('W')}(${chalk.blueBright('ITM')}) ${chalk.red('L')}] (games)`;
+
+  return [legend, '', ...lines].join('\n');
 }
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
 module.exports = {
   extractTimeFromFilename,
-  formatDateShortIt,
+  formatDateShort,
   frameString,
   parseDateAndTime,
   prettyBoard,

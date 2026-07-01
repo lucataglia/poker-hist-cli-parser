@@ -20,8 +20,10 @@ function runCli(extraArgs) {
 
 test('--view=graph renders the daily chart, not the all-in detail', () => {
   const out = runCli(['--view=graph']);
-  assert.ok(out.includes('30 Giu') || out.includes('01 Gen') || out.includes('02 Gen'),
-    'chart should contain italian short dates');
+  assert.ok(
+    out.includes('01 Jan') || out.includes('02 Jan'),
+    'chart should contain english short dates',
+  );
   assert.ok(!out.includes('All-in ≥ 50% Equity'), 'should not show the detail stats box');
 });
 
