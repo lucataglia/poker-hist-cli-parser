@@ -158,6 +158,21 @@ function frameString(str) {
   return lines.join('\n');
 }
 
+const MONTHS_IT = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+function formatDateShortIt(yyyymmdd) {
+  if (typeof yyyymmdd !== 'string' || !/^\d{8}$/.test(yyyymmdd)) {
+    return yyyymmdd;
+  }
+  const day = yyyymmdd.slice(6, 8);
+  const monthIndex = Number(yyyymmdd.slice(4, 6)) - 1;
+  const month = MONTHS_IT[monthIndex];
+  if (!month) {
+    return yyyymmdd;
+  }
+  return `${day} ${month}`;
+}
+
 function extractTimeFromFilename(filename) {
   const regex = /HH(\d{8})/;
   const match = filename.match(regex);
@@ -187,6 +202,7 @@ function parseDateAndTime(filename) {
 
 module.exports = {
   extractTimeFromFilename,
+  formatDateShortIt,
   frameString,
   parseDateAndTime,
   prettyBoard,
