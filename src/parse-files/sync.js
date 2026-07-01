@@ -5,6 +5,7 @@ const { allInParser } = require('../all-in-parser');
 const {
   frameString, parseDateAndTime, extractTimeFromFilename, printEquityStats,
 } = require('../helpers');
+const { parsePL } = require('../pl-parser');
 
 function parseFileSync(filePath, filename, argvName, displayName, isLast) {
   const headerName = displayName || argvName;
@@ -49,6 +50,35 @@ function parseAllOldFiles(directoryArgv, timeFilterArgv, argvName, displayName) 
   });
 }
 
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Read all HH* files at/after timeFilter, compute per-tournament P/L, and
+// aggregate into one entry per calendar day sorted chronologically.
+function buildDailyPL(directory, timeFilter, playerName) {
+  const filter = Number(timeFilter);
+  const files = fs.readdirSync(directory)
+    .filter((file) => file.startsWith('HH'))
+    .filter((file) => {
+      const time = extractTimeFromFilename(file);
+      return time !== null && Number(time) >= filter;
+    });
+
+  const byDay = new Map();
+  files.forEach((filename) => {
+    const date = extractTimeFromFilename(filename);
+    const content = fs.readFileSync(path.join(directory, filename), 'utf8');
+    const { pl } = parsePL(content, playerName);
+
+    const entry = byDay.get(date) || { date, pl: 0, games: 0 };
+    entry.pl = round2(entry.pl + pl);
+    entry.games += 1;
+    byDay.set(date, entry);
+  });
+
+  return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 module.exports = {
   parseAllOldFiles,
+  buildDailyPL,
 };
