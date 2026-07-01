@@ -1,3 +1,5 @@
+const chalk = require('chalk');
+
 const pretty = (card) => card.split('').map((char) => {
   switch (char) {
     case 'h': return '❤️';
@@ -200,6 +202,48 @@ function parseDateAndTime(filename) {
   return null;
 }
 
+const BAR_CHAR = '▓';
+
+// Divergent horizontal bar chart. Positive P/L extends right of a central axis
+// (dim green), negative extends left (dim red). Bar length is proportional to the
+// largest |pl| in the data set, capped at maxBarWidth.
+function renderPLChart(dailyData, maxBarWidth = 20) {
+  if (!dailyData || dailyData.length === 0) {
+    return 'Nessun dato';
+  }
+
+  const maxAbs = dailyData.reduce((m, d) => Math.max(m, Math.abs(d.pl)), 0);
+  const label = (d) => formatDateShortIt(d.date);
+  const labelWidth = dailyData.reduce((m, d) => Math.max(m, label(d).length), 0);
+
+  const barLen = (pl) => {
+    if (maxAbs === 0 || pl === 0) {
+      return 0;
+    }
+    return Math.max(1, Math.round((Math.abs(pl) / maxAbs) * maxBarWidth));
+  };
+
+  const lines = dailyData.map((d) => {
+    const lbl = label(d).padEnd(labelWidth);
+    const len = barLen(d.pl);
+    const value = `${d.pl >= 0 ? '' : '-'}${Math.abs(d.pl).toFixed(2)}€`;
+    const games = `(${d.games})`;
+
+    if (d.pl < 0) {
+      const bar = chalk.dim.red(BAR_CHAR.repeat(len));
+      const pad = ' '.repeat(maxBarWidth - len);
+      return `${lbl} ${pad}${bar}│ ${value} ${games}`;
+    }
+    const bar = chalk.dim.green(BAR_CHAR.repeat(len));
+    return `${lbl} ${' '.repeat(maxBarWidth)}│${bar} ${value} ${games}`;
+  });
+
+  const axisPad = ' '.repeat(labelWidth + 1 + maxBarWidth);
+  lines.push(`${axisPad}┴`);
+
+  return lines.join('\n');
+}
+
 module.exports = {
   extractTimeFromFilename,
   formatDateShortIt,
@@ -208,4 +252,5 @@ module.exports = {
   prettyBoard,
   prettyHand,
   printEquityStats,
+  renderPLChart,
 };
