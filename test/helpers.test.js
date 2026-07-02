@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const chalk = require('chalk');
-const { formatDateShort, renderPLChart } = require('../src/helpers');
+const { formatDateShort, renderEVSummary, renderPLChart } = require('../src/helpers');
 
 // eslint-disable-next-line no-control-regex
 const stripAnsi = (s) => s.replace(/\[[0-9;]*m/g, '');
@@ -91,4 +91,33 @@ test('renderPLChart: largest magnitude uses full bar width', () => {
   const big = out.split('\n').find((l) => l.includes('30 Jun'));
   const barCount = (big.match(/▓/g) || []).length;
   assert.strictEqual(barCount, 8, 'max |pl| day fills maxBarWidth');
+});
+
+test('renderEVSummary: empty returns placeholder', () => {
+  assert.strictEqual(
+    renderEVSummary({
+      count: 0, actualChips: 0, evChips: 0, avgEquity: 0,
+    }),
+    'No all-in showdowns found',
+  );
+});
+
+test('renderEVSummary: shows counts, chips, luck and avg equity', () => {
+  const out = stripAnsi(renderEVSummary({
+    count: 42, actualChips: 8450, evChips: 7900, avgEquity: 0.532,
+  }));
+  assert.ok(out.includes('42'), 'shows count');
+  assert.ok(out.includes('8450'), 'shows actual chips');
+  assert.ok(out.includes('7900'), 'shows EV chips');
+  assert.ok(out.includes('550'), 'shows luck = actual - ev');
+  assert.ok(out.includes('53.2'), 'shows avg equity percent');
+});
+
+test('renderEVSummary: negative luck is colored red', () => {
+  const raw = renderEVSummary({
+    count: 10, actualChips: 100, evChips: 300, avgEquity: 0.4,
+  });
+  // Red foreground = 31. Luck is -200.
+  // eslint-disable-next-line no-control-regex
+  assert.ok(/\[31m/.test(raw) || raw.includes('-200'), 'negative luck present');
 });

@@ -272,6 +272,32 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
+// Summary box for the all-in EV view. luck = actualChips - evChips: green when
+// running at/above expectation, red when below.
+function renderEVSummary(totals) {
+  const {
+    count, actualChips, evChips, avgEquity,
+  } = totals;
+  if (!count) {
+    return 'No all-in showdowns found';
+  }
+  const luck = actualChips - evChips;
+  const luckStr = `${luck >= 0 ? '+' : ''}${luck}`;
+  const luckColored = luck >= 0 ? chalk.green(luckStr) : chalk.red(luckStr);
+  const avgPct = (avgEquity * 100).toFixed(1);
+
+  const lines = [
+    'All-in EV summary (showdown hands only)',
+    '',
+    `  All-ins analyzed       ${count}`,
+    `  Actual chips won       ${actualChips}`,
+    `  Expected chips (EV)    ${evChips}`,
+    `  Luck (actual - EV)     ${luckColored}`,
+    `  Avg equity when all-in ${avgPct}%`,
+  ];
+  return lines.join('\n');
+}
+
 module.exports = {
   extractTimeFromFilename,
   formatDateShort,
@@ -280,6 +306,7 @@ module.exports = {
   prettyBoard,
   prettyHand,
   printEquityStats,
+  renderEVSummary,
   renderPLChart,
   round2,
 };
