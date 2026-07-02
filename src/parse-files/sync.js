@@ -6,6 +6,7 @@ const {
   frameString, parseDateAndTime, extractTimeFromFilename, printEquityStats, round2,
 } = require('../helpers');
 const { parsePL } = require('../pl-parser');
+const { parseAllInEV } = require('../ev-parser');
 
 function parseFileSync(filePath, filename, argvName, displayName, isLast) {
   const headerName = displayName || argvName;
@@ -90,7 +91,41 @@ function buildDailyPL(directory, timeFilter, playerName) {
   return [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
+// Read all HH* files at/after timeFilter and aggregate hero all-in EV spots into
+// one totals object. avgEquity is the mean spot equity across all files.
+function buildAllInEV(directory, timeFilter, playerName) {
+  const filter = Number(timeFilter);
+  const files = fs.readdirSync(directory)
+    .filter((file) => file.startsWith('HH'))
+    .filter((file) => {
+      const time = extractTimeFromFilename(file);
+      return time !== null && Number(time) >= filter;
+    });
+
+  let count = 0;
+  let actualChips = 0;
+  let evChips = 0;
+  let equitySum = 0;
+
+  files.forEach((filename) => {
+    const content = fs.readFileSync(path.join(directory, filename), 'utf8');
+    const { spots } = parseAllInEV(content, playerName);
+    spots.forEach((s) => {
+      count += 1;
+      actualChips += s.actual;
+      evChips += Math.round(s.equity * s.pot);
+      equitySum += s.equity;
+    });
+  });
+
+  const avgEquity = count === 0 ? 0 : equitySum / count;
+  return {
+    count, actualChips, evChips, avgEquity,
+  };
+}
+
 module.exports = {
   parseAllOldFiles,
   buildDailyPL,
+  buildAllInEV,
 };
