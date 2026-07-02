@@ -33,19 +33,21 @@ function statValue(output, label) {
 
 test('counts every tournament processed as total', () => {
   const out = runCli(['--view=detail']);
-  assert.strictEqual(statValue(out, 'Total'), 2, 'two fixture tournaments');
+  // 5 fixture tournaments (HH20260101 through HH20260105)
+  assert.strictEqual(statValue(out, 'Total'), 5, 'five fixture tournaments');
 });
 
 test('counts hero all-in wins and losses', () => {
   const out = runCli(['--view=detail']);
-  assert.strictEqual(statValue(out, 'Wins'), 1, 'one all-in won');
+  // fixtures 2,3,4,5 hero wins the all-in; fixture 1 hero loses
+  assert.strictEqual(statValue(out, 'Wins'), 4, 'four all-ins won');
   assert.strictEqual(statValue(out, 'Losses'), 1, 'one all-in lost');
 });
 
 test('ITM counts only tournaments where hero cashes', () => {
   const out = runCli(['--view=detail']);
-  // Only fixture 2 has "TestHero wins the tournament and receives".
-  assert.strictEqual(statValue(out, 'ITM'), 1);
+  // fixtures 2,3,4,5 have "TestHero wins the tournament and receives"
+  assert.strictEqual(statValue(out, 'ITM'), 4);
 });
 
 test('parsing uses --name and is not hardcoded to a specific player', () => {

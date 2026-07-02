@@ -93,6 +93,8 @@ function buildDailyPL(directory, timeFilter, playerName) {
 
 // Read all HH* files at/after timeFilter and aggregate hero all-in EV spots into
 // one totals object. avgEquity is the mean spot equity across all files.
+// FIX 4 (DRY): reuse parseAllInEV's returned totals instead of re-implementing
+// the reduction. avgEquity is kept as a weighted mean: sum(equity per spot) / totalCount.
 function buildAllInEV(directory, timeFilter, playerName) {
   const filter = Number(timeFilter);
   const files = fs.readdirSync(directory)
@@ -109,13 +111,12 @@ function buildAllInEV(directory, timeFilter, playerName) {
 
   files.forEach((filename) => {
     const content = fs.readFileSync(path.join(directory, filename), 'utf8');
-    const { spots } = parseAllInEV(content, playerName);
-    spots.forEach((s) => {
-      count += 1;
-      actualChips += s.actual;
-      evChips += Math.round(s.equity * s.pot);
-      equitySum += s.equity;
-    });
+    const { totals } = parseAllInEV(content, playerName);
+    count += totals.count;
+    actualChips += totals.actualChips;
+    evChips += totals.evChips;
+    // Weighted equity sum: avgEquity * count gives sum of equities for this file.
+    equitySum += totals.avgEquity * totals.count;
   });
 
   const avgEquity = count === 0 ? 0 : equitySum / count;

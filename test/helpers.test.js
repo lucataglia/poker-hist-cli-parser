@@ -114,10 +114,13 @@ test('renderEVSummary: shows counts, chips, luck and avg equity', () => {
 });
 
 test('renderEVSummary: negative luck is colored red', () => {
+  const prevLevel = chalk.level;
+  chalk.level = 3; // force colors even without a TTY (e.g. under `node --test`)
   const raw = renderEVSummary({
     count: 10, actualChips: 100, evChips: 300, avgEquity: 0.4,
   });
+  chalk.level = prevLevel;
   // Red foreground = 31. Luck is -200.
   // eslint-disable-next-line no-control-regex
-  assert.ok(/\[31m/.test(raw) || raw.includes('-200'), 'negative luck present');
+  assert.ok(/\[31m/.test(raw), 'negative luck should be colored red (ANSI 31)');
 });

@@ -3,13 +3,14 @@ const { TexasHoldem } = require('poker-odds-calc');
 
 const round = (n) => Math.round(n);
 
-// Extract the board visible at the moment of the LAST all-in in the hand.
+// FIX 2: Snapshot the board at the HERO's FIRST all-in, not the global last all-in.
+// The hero committed on a specific street; equity must be computed from that point.
+// Preflop hero all-in => board is still empty ([]).
 // Streets appear as "*** FLOP *** [a b c]", "*** TURN *** [a b c] [d]",
-// "*** RIVER *** [a b c d] [e]". The board known when the all-in happens is
-// the board of the street on which the last "is all-in" line sits.
-function boardAtAllIn(lines) {
+// "*** RIVER *** [a b c d] [e]".
+function boardAtAllIn(lines, playerName) {
   let currentBoard = [];
-  let boardAtLastAllIn = null;
+  let boardSnapshot = null;
   lines.forEach((row) => {
     const flop = row.match(/^\*\*\* FLOP \*\*\* \[([^\]]+)\]/);
     const turn = row.match(/^\*\*\* TURN \*\*\* \[([^\]]+)\] \[([^\]]+)\]/);
@@ -21,11 +22,13 @@ function boardAtAllIn(lines) {
     } else if (river) {
       currentBoard = [...river[1].split(' '), river[2]];
     }
-    if (row.includes('is all-in')) {
-      boardAtLastAllIn = [...currentBoard];
+    // Only snapshot at the FIRST line where the HERO goes all-in.
+    // Lines where a villain goes all-in later (e.g. on the flop) are ignored.
+    if (boardSnapshot === null && row.startsWith(`${playerName}:`) && row.includes('is all-in')) {
+      boardSnapshot = [...currentBoard];
     }
   });
-  return boardAtLastAllIn;
+  return boardSnapshot;
 }
 
 // Parse one hand's text. Returns a spot or null.
@@ -54,14 +57,38 @@ function parseHandSpot(handText, playerName) {
     return null;
   }
 
+  // FIX 3: Collect every distinct player name that went all-in.
+  // If any all-in player did NOT reveal their cards at showdown, we cannot
+  // compute correct equity — the missing cards would be treated as deck cards,
+  // inflating equity for the remaining players. Exclude such spots.
+  // Known limitation: only hands where ALL all-in players reveal cards are counted.
+  const allInNames = new Set();
+  lines.forEach((row) => {
+    const m = row.match(/^(.+?): .*is all-in/);
+    if (m) {
+      allInNames.add(m[1]);
+    }
+  });
+  if (allInNames.size > Object.keys(shown).length) {
+    return null;
+  }
+
   const potMatch = handText.match(/Total pot (\d+)/);
   const pot = potMatch ? Number(potMatch[1]) : 0;
 
+  // FIX 1: Sum ALL "<hero> collected N" lines. In a multiway all-in the hero
+  // may collect from both a side pot and the main pot on separate lines.
   const escaped = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const collectedMatch = handText.match(new RegExp(`^${escaped}\\b.*collected (\\d+)`, 'm'));
-  const actual = collectedMatch ? Number(collectedMatch[1]) : 0;
+  const collectedRe = new RegExp(`^${escaped}\\b.*collected (\\d+)`, 'gm');
+  let actual = 0;
+  let cm = collectedRe.exec(handText);
+  while (cm) {
+    actual += Number(cm[1]);
+    cm = collectedRe.exec(handText);
+  }
 
-  const board = boardAtAllIn(lines) || [];
+  // FIX 2: Use the board at the HERO's first all-in (pass playerName).
+  const board = boardAtAllIn(lines, playerName) || [];
 
   const table = new TexasHoldem();
   const names = Object.keys(shown);

@@ -1,0 +1,25 @@
+PokerStars Hand #100000000004: Tournament #1000000004, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0004] - 2026/01/04 13:00:00 CET [2026/01/04 07:00:00 ET]
+Table '1000000004 1' 2-max Seat #1 is the button
+Seat 1: TestHero (300 in chips)
+Seat 2: Villain1 (300 in chips)
+TestHero: posts small blind 10
+Villain1: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Ks Kc]
+TestHero: raises 280 to 300 and is all-in
+Villain1: calls 280 and is all-in
+*** FLOP *** [2d 8h Ah]
+Villain1: is all-in
+*** TURN *** [2d 8h Ah] [Tc]
+*** RIVER *** [2d 8h Ah Tc] [Jd]
+*** SHOW DOWN ***
+TestHero: shows [Ks Kc] (a pair of Kings)
+Villain1: shows [7h 6h] (high card Ace)
+TestHero collected 600 from pot
+Villain1 finished the tournament in 2nd place
+TestHero wins the tournament and receives €2.00 - congratulations!
+*** SUMMARY ***
+Total pot 600 | Rake 0
+Board [2d 8h Ah Tc Jd]
+Seat 1: TestHero (button) (small blind) showed [Ks Kc] and won (600) with a pair of Kings
+Seat 2: Villain1 (big blind) showed [7h 6h] and lost with high card Ace
