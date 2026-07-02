@@ -23,8 +23,8 @@ if (missingFields.length > 0) {
 console.clear();
 
 const readline = require('readline');
-const { parseAllOldFiles, buildDailyPL } = require('./src/parse-files/sync');
-const { renderPLChart } = require('./src/helpers');
+const { parseAllOldFiles, buildDailyPL, buildAllInEV } = require('./src/parse-files/sync');
+const { renderPLChart, renderEVSummary } = require('./src/helpers');
 
 const directoryArgv = argv.dir || './';
 const {
@@ -48,20 +48,29 @@ function showGraph() {
   console.log('\n');
 }
 
+function showEV() {
+  const totals = buildAllInEV(directoryArgv, timeFilterArgv, argvName);
+  console.log('\n');
+  console.log(renderEVSummary(totals));
+  console.log('\n');
+}
+
 function run(view) {
   if (view === 'graph') {
     showGraph();
+  } else if (view === 'ev') {
+    showEV();
   } else {
     showDetail();
   }
 }
 
-if (viewArgv === 'graph' || viewArgv === 'detail') {
+if (viewArgv === 'graph' || viewArgv === 'detail' || viewArgv === 'ev') {
   run(viewArgv);
 } else {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = () => {
-    rl.question('Cosa vuoi vedere?\n  [1] Dettaglio all-in\n  [2] Grafico P/L giornaliero\n> ', (answer) => {
+    rl.question('Cosa vuoi vedere?\n  [1] Dettaglio all-in\n  [2] Grafico P/L giornaliero\n  [3] All-in EV summary\n> ', (answer) => {
       const choice = answer.trim();
       if (choice === '1') {
         rl.close();
@@ -69,6 +78,9 @@ if (viewArgv === 'graph' || viewArgv === 'detail') {
       } else if (choice === '2') {
         rl.close();
         run('graph');
+      } else if (choice === '3') {
+        rl.close();
+        run('ev');
       } else {
         ask();
       }

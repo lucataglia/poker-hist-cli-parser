@@ -31,3 +31,9 @@ test('--view=detail renders the all-in detail view', () => {
   const out = runCli(['--view=detail']);
   assert.ok(out.includes('All-in ≥ 50% Equity'), 'should show the detail stats box');
 });
+
+test('--view=ev renders the all-in EV summary', () => {
+  const out = runCli(['--view=ev']);
+  assert.ok(out.includes('All-in EV summary'), 'shows the EV summary header');
+  assert.ok(!out.includes('All-in ≥ 50% Equity'), 'not the detail stats box');
+});
