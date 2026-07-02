@@ -90,7 +90,7 @@ function parseAllInEV(fileContent, playerName) {
 
   const count = spots.length;
   const actualChips = spots.reduce((s, x) => s + x.actual, 0);
-  const evChips = round(spots.reduce((s, x) => s + x.equity * x.pot, 0));
+  const evChips = spots.reduce((s, x) => s + round(x.equity * x.pot), 0);
   const avgEquity = count === 0 ? 0 : spots.reduce((s, x) => s + x.equity, 0) / count;
 
   return {
