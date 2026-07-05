@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const path = require('node:path');
+const fs = require('node:fs');
 
 const ROOT = path.join(__dirname, '..');
 const FIXTURES = path.join(__dirname, 'fixtures');
@@ -37,8 +38,6 @@ test('--view=ev renders the all-in EV summary', () => {
   assert.ok(out.includes('All-in EV summary'), 'shows the EV summary header');
   assert.ok(!out.includes('All-in ≥ 50% Equity'), 'not the detail stats box');
 });
-
-const fs = require('node:fs');
 
 test('name is read from .env when --name is absent', () => {
   // Write a temporary .env in the project root with PLAYER_NAME, run without --name.
