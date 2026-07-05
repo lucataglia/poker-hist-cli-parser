@@ -176,18 +176,60 @@ Seat 1: TestHero (small blind) showed [Kd 3s] and lost with a pair of Eights
 Seat 2: Villain1 (big blind) showed [Ah Ad] and won (300) with two pair, Aces and Eights
 ```
 
+Also create `test/fixtures/HH20260707 T1000000007 No Limit Hold'em €4,60 + €0,40.txt` — a
+DIFFERENT buy-in (€5 Spin: header `€4.60+€0.40` = €5 total) where the hero finishes
+2nd for €10 (a 10x €5 Spin pays €40/€10). This proves prize parsing reads the actual
+euro amount from the file regardless of buy-in — it is NOT proportion/multiplier math.
+
+```
+PokerStars Hand #100000000007: Tournament #1000000007, €4.60+€0.40 EUR Hold'em No Limit - Level V (40/80) [ADM ID: TESTAAAA0007] - 2026/07/07 10:00:00 CET [2026/07/07 04:00:00 ET]
+Table '1000000007 1' 2-max Seat #1 is the button
+Seat 1: TestHero (150 in chips)
+Seat 2: Villain1 (450 in chips)
+TestHero: posts small blind 40
+Villain1: posts big blind 80
+*** HOLE CARDS ***
+Dealt to TestHero [Kd 3s]
+TestHero: raises 70 to 150 and is all-in
+Villain1: calls 70
+*** FLOP *** [8h 8d 2c]
+*** TURN *** [8h 8d 2c] [9h]
+*** RIVER *** [8h 8d 2c 9h] [Qs]
+*** SHOW DOWN ***
+TestHero: shows [Kd 3s] (a pair of Eights)
+Villain1: shows [Ah Ad] (two pair, Aces and Eights)
+Villain1 collected 300 from pot
+TestHero finished the tournament in 2nd place and received €10.00.
+Villain1 wins the tournament and receives €40.00 - congratulations!
+*** SUMMARY ***
+Total pot 300 | Rake 0
+Board [8h 8d 2c 9h Qs]
+Seat 1: TestHero (small blind) showed [Kd 3s] and lost with a pair of Eights
+Seat 2: Villain1 (big blind) showed [Ah Ad] and won (300) with two pair, Aces and Eights
+```
+
 - [ ] **Step 2: Write the failing tests**
 
 Append to `test/pl-parser.test.js`:
 
 ```js
 const CASHED_2ND = "HH20260706 T1000000006 No Limit Hold'em €0,91 + €0,09.txt";
+const CASHED_2ND_5EUR = "HH20260707 T1000000007 No Limit Hold'em €4,60 + €0,40.txt";
 
 test('parsePL: hero finishes 2nd for a prize -> prize counted from "and received"', () => {
   const r = parsePL(read(CASHED_2ND), 'TestHero');
   assert.strictEqual(r.prize, 2); // "finished ... 2nd place and received €2.00"
   assert.strictEqual(r.buyIn, 1);
   assert.strictEqual(r.pl, 1); // 2 - 1
+});
+
+test('parsePL: placement prize is read from the file, correct for a different buy-in', () => {
+  // €5 Spin: header €4.60+€0.40 = €5 buy-in; 2nd place received €10.00 in the file.
+  // The parser reads the actual amount, NOT proportion/multiplier math.
+  const r = parsePL(read(CASHED_2ND_5EUR), 'TestHero');
+  assert.strictEqual(r.prize, 10);
+  assert.strictEqual(r.buyIn, 5);
+  assert.strictEqual(r.pl, 5); // 10 - 5
 });
 ```
 
@@ -274,22 +316,22 @@ test('ITM counts only tournaments where hero cashes', () => {
 });
 ```
 
-now sees TWO cashes (fixture 2's win + fixture 6's 2nd-place cash). Update its
-expectation and comment to:
+now sees THREE cashes (fixture 2's win + fixture 6's 2nd-place cash + fixture 7's
+2nd-place cash). Update its expectation and comment to:
 
 ```js
 test('ITM counts tournaments where hero cashes (win or placement)', () => {
   const out = runCli(['--view=detail']);
-  // fixture 2 (1st place, receives) + fixture 6 (2nd place, received) = 2 cashes.
-  assert.strictEqual(statValue(out, 'ITM'), 2);
+  // fixture 2 (1st, receives) + fixture 6 (2nd, received €2) + fixture 7 (2nd, received €10) = 3.
+  assert.strictEqual(statValue(out, 'ITM'), 3);
 });
 ```
 
-Similarly, if any other existing test in `test/parser.test.js` asserts a `Total`
-count, note the new fixture raises the tournament total by 1 for the default
-range; update those expectations to match (e.g. a `Total` of 2 becomes 3).
-Check by reading the test file before running; adjust every count assertion the
-new fixture shifts, without weakening what each test checks.
+Similarly, any other existing test in `test/parser.test.js` that asserts a `Total`
+count must account for BOTH new fixtures (HH20260706, HH20260707): the tournament
+`Total` over the default range rises by 2 (e.g. a `Total` of 2 becomes 4). Read the
+test file before running and adjust every count assertion the two new fixtures
+shift, without weakening what each test checks.
 
 - [ ] **Step 7: Run tests to verify they pass**
 
@@ -305,11 +347,12 @@ Expected: exit 0.
 
 ```bash
 git add -f "test/fixtures/HH20260706 T1000000006 No Limit Hold'em €0,91 + €0,09.txt"
+git add -f "test/fixtures/HH20260707 T1000000007 No Limit Hold'em €4,60 + €0,40.txt"
 git add src/pl-parser.js src/all-in-parser.js test/pl-parser.test.js test/parser.test.js
 git commit -m "feat: count 2nd/3rd-place cash finishes as ITM and in P/L"
 ```
 
-Note: the fixture must be `git add -f` because `.git/info/exclude` ignores `HH20*`.
+Note: fixtures must be `git add -f` because `.git/info/exclude` ignores `HH20*`.
 
 ---
 
