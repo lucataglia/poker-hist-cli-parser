@@ -192,3 +192,100 @@ Files changed: 5 (31 insertions, 14 deletions)
 ## Concerns
 
 None. All fixes are targeted and non-breaking. The `parseBuyIn` rewrite correctly handles 2-part and 3-part (and any N-part) buy-ins. The `escapeRegExp` extraction eliminates the inconsistency between the ITM regex and the `anonymize` helper. The `round2` deduplication introduces a single source of truth with no behavior change.
+
+---
+
+## Round 3: Cleanup Fixes (ITM predicate, dead code, .env test safety)
+
+### FIX 1 (consistency): unify ITM predicate
+
+**File:** `src/all-in-parser.js` — line 46
+
+**Change:** Added `€` after `receive[sd]` in the ITM regex, changing it from `\\breceive[sd]\\b` to `\\breceive[sd] €`. This aligns the all-in-parser ITM check with the pl-parser prize regex (`receive[sd] €`), ensuring both views share one definition and preventing false positives from any non-prize "received"/"receives" line.
+
+**Result:** All existing tests still pass — fixtures already use "receives €"/"received €" so the predicate change is a correctness tightening with no test impact.
+
+---
+
+### FIX 2 (dead code): delete async.js
+
+**File deleted:** `src/parse-files/async.js`
+
+**Verification:** `grep -rn "parse-files/async\|require.*async" src/ index.js test/` returned no output (zero references). The file was safely deleted.
+
+---
+
+### FIX 3 (test safety): stop mutating the real project-root .env
+
+**Files changed:** `index.js`, `test/view-selection.test.js`
+
+**Approach:** Added `process.env.POKER_ENV_PATH` override to `index.js`:
+```js
+const envPath = process.env.POKER_ENV_PATH || path.join(__dirname, '.env');
+const env = loadEnv(envPath);
+```
+
+Updated the test to write a temp `.env` to `os.tmpdir()` and pass `POKER_ENV_PATH` in the child process environment. The real project-root `.env` is never touched. Cleanup is unconditional in `finally` via `fs.rmSync(tmpEnv, { force: true })`.
+
+Also moved the `require('node:os')` import to the top of the file to satisfy the `global-require` ESLint rule.
+
+---
+
+### Full suite result
+
+```
+node --test
+tests 41
+pass 41
+fail 0
+duration_ms ~12325
+```
+
+All 41 tests pass. No regressions.
+
+---
+
+### Lint result
+
+`npx eslint src/ index.js test/` — exit 0, no output (clean).
+
+---
+
+### Real-data verification (Jeff81088)
+
+```
+node index.js --view=detail --dir="...HandHistory/Jeff81088"
+
+│ All-in ≥ 50% Equity  120 │
+│ All-in < 50% Equity  135 │
+│                          │
+│ Wins                 136 │
+│ Losses               119 │
+│                          │
+│ Plus/Minus           -15 │
+│ Plus/Minus Wins       17 │
+│                          │
+│ Total                 99 │
+│ ITM                   43 │
+└──────────────────────────┘
+```
+
+**ITM value: 43**
+
+---
+
+### Commit
+
+Hash: `bb7079f`
+Branch: `feat/itm-placement-config`
+Message: `refactor: unify ITM predicate, drop dead async.js, make .env test use temp path`
+Files changed: 6 (16 insertions, 60 deletions — including async.js deletion)
+
+---
+
+### Concerns
+
+None. All three fixes are clean and non-breaking:
+- FIX 1 is a pure correctness improvement (the fixtures already used the euro sign so no test impact).
+- FIX 2 had zero references confirmed before deletion.
+- FIX 3 avoids any mutation of the real `.env` and the minimal `index.js` change (one new variable honoring an env override) is backward-compatible — the default path is unchanged.
