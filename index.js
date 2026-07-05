@@ -14,8 +14,8 @@ const env = loadEnv(envPath);
 const nameFromArgs = argv.name && argv.name.toString().trim();
 const nameFromEnv = env.PLAYER_NAME && env.PLAYER_NAME.trim();
 
-// Silent defaults for dir and timestamp (user chose: dir=./, all history).
-const directoryArgv = argv.dir || './';
+// Dir precedence: --dir (CLI) > HISTORY_DIR (.env) > './'. Timestamp: all history.
+const directoryArgv = argv.dir || (env.HISTORY_DIR && env.HISTORY_DIR.trim()) || './';
 const timeFilterArgv = argv.timestamp !== undefined ? argv.timestamp : 0;
 const { anonymize: argvAnonymyze, view: viewArgv } = argv;
 
