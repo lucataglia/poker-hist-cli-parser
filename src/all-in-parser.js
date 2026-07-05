@@ -43,7 +43,7 @@ const allInParser = (data, playerName) => {
   // Count an in-the-money finish for this tournament: PokerStars writes
   // "<name> ... receives €X" when the hero cashes. Scanned over the whole file
   // (not only all-in hands), and only once per tournament.
-  const itmRegex = new RegExp(`^${escapeRegExp(argvName)}\\b.*\\breceive[sd]\\b`, 'm');
+  const itmRegex = new RegExp(`^${escapeRegExp(argvName)}\\b.*\\breceive[sd] €`, 'm');
   if (itmRegex.test(data)) {
     itm += 1;
   }

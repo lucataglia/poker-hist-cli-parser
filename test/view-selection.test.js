@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
+const os = require('node:os');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -40,22 +41,25 @@ test('--view=ev renders the all-in EV summary', () => {
 });
 
 test('name is read from .env when --name is absent', () => {
-  // Write a temporary .env in the project root with PLAYER_NAME, run without --name.
-  const envPath = path.join(ROOT, '.env');
-  const had = fs.existsSync(envPath);
-  const backup = had ? fs.readFileSync(envPath) : null;
-  fs.writeFileSync(envPath, 'PLAYER_NAME=TestHero\n');
+  // Write a temp .env in the OS temp dir so the real project-root .env is never touched.
+  // index.js honours POKER_ENV_PATH when set, so we pass it in the child env.
+  const tmpEnv = path.join(os.tmpdir(), `poker-test-${process.pid}.env`);
+  fs.writeFileSync(tmpEnv, 'PLAYER_NAME=TestHero\n');
   try {
     const out = execFileSync('node', [
       path.join(ROOT, 'index.js'),
       '--timestamp=20260101',
       `--dir=${FIXTURES}`,
       '--view=detail',
-    ], { encoding: 'utf8', cwd: ROOT })
+    ], {
+      encoding: 'utf8',
+      cwd: ROOT,
+      env: { ...process.env, POKER_ENV_PATH: tmpEnv },
+    })
       // eslint-disable-next-line no-control-regex
       .replace(/\[[0-9;]*m/g, '').replace(/\[[0-9]*[A-Z]/g, '');
     assert.ok(out.includes('All-in ≥ 50% Equity'), 'detail view ran using .env name');
   } finally {
-    if (had) { fs.writeFileSync(envPath, backup); } else { fs.rmSync(envPath); }
+    fs.rmSync(tmpEnv, { force: true });
   }
 });

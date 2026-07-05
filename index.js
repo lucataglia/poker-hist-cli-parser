@@ -7,7 +7,8 @@ const { renderPLChart, renderEVSummary } = require('./src/helpers');
 
 console.clear();
 
-const env = loadEnv(path.join(__dirname, '.env'));
+const envPath = process.env.POKER_ENV_PATH || path.join(__dirname, '.env');
+const env = loadEnv(envPath);
 
 // Name precedence: --name (CLI) > PLAYER_NAME (.env) > interactive prompt.
 const nameFromArgs = argv.name && argv.name.toString().trim();
