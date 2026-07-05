@@ -1,0 +1,24 @@
+PokerStars Hand #100000000007: Tournament #1000000007, €4.60+€0.40 EUR Hold'em No Limit - Level V (40/80) [ADM ID: TESTAAAA0007] - 2026/07/07 10:00:00 CET [2026/07/07 04:00:00 ET]
+Table '1000000007 1' 2-max Seat #1 is the button
+Seat 1: TestHero (150 in chips)
+Seat 2: Villain1 (450 in chips)
+TestHero: posts small blind 40
+Villain1: posts big blind 80
+*** HOLE CARDS ***
+Dealt to TestHero [Kd 3s]
+TestHero: raises 70 to 150 and is all-in
+Villain1: calls 70
+*** FLOP *** [8h 8d 2c]
+*** TURN *** [8h 8d 2c] [9h]
+*** RIVER *** [8h 8d 2c 9h] [Qs]
+*** SHOW DOWN ***
+TestHero: shows [Kd 3s] (a pair of Eights)
+Villain1: shows [Ah Ad] (two pair, Aces and Eights)
+Villain1 collected 300 from pot
+TestHero finished the tournament in 2nd place and received €10.00.
+Villain1 wins the tournament and receives €40.00 - congratulations!
+*** SUMMARY ***
+Total pot 300 | Rake 0
+Board [8h 8d 2c 9h Qs]
+Seat 1: TestHero (small blind) showed [Kd 3s] and lost with a pair of Eights
+Seat 2: Villain1 (big blind) showed [Ah Ad] and won (300) with two pair, Aces and Eights

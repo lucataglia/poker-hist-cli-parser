@@ -21,11 +21,12 @@ function parseBuyIn(fileContent) {
   return round2(total);
 }
 
-// Sum every "<player> ... receives €X" line (there is at most one per tournament,
-// but summing is robust). Handles '.' and ',' decimals.
+// Sum every "<player> ... receives €X" (1st place) or "<player> ... received €X"
+// (2nd/3rd place) line. Handles '.' and ',' decimals.
 function parsePrize(fileContent, playerName) {
   const escaped = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`^${escaped}\\b.*\\breceives €\\s*(\\d+(?:[.,]\\d+)?)`, 'gm');
+  // 1st place: "<name> ... receives €X"; 2nd/3rd: "<name> ... received €X".
+  const re = new RegExp(`^${escaped}\\b.*\\breceive[sd] €\\s*(\\d+(?:[.,]\\d+)?)`, 'gm');
   let total = 0;
   let m = re.exec(fileContent);
   while (m) {

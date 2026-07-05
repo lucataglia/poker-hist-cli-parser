@@ -33,21 +33,21 @@ function statValue(output, label) {
 
 test('counts every tournament processed as total', () => {
   const out = runCli(['--view=detail']);
-  // 5 fixture tournaments (HH20260101 through HH20260105)
-  assert.strictEqual(statValue(out, 'Total'), 5, 'five fixture tournaments');
+  // 7 fixture tournaments (HH20260101 through HH20260105 + HH20260706 + HH20260707)
+  assert.strictEqual(statValue(out, 'Total'), 7, 'seven fixture tournaments');
 });
 
 test('counts hero all-in wins and losses', () => {
   const out = runCli(['--view=detail']);
-  // fixtures 2,3,4,5 hero wins the all-in; fixture 1 hero loses
+  // fixtures 2,3,4,5 hero wins the all-in; fixtures 1, 6, 7 hero loses
   assert.strictEqual(statValue(out, 'Wins'), 4, 'four all-ins won');
-  assert.strictEqual(statValue(out, 'Losses'), 1, 'one all-in lost');
+  assert.strictEqual(statValue(out, 'Losses'), 3, 'three all-ins lost');
 });
 
-test('ITM counts only tournaments where hero cashes', () => {
+test('ITM counts tournaments where hero cashes (win or placement)', () => {
   const out = runCli(['--view=detail']);
-  // fixtures 2,3,4,5 have "TestHero wins the tournament and receives"
-  assert.strictEqual(statValue(out, 'ITM'), 4);
+  // fixtures 2,3,4,5 (1st, receives) + fixture 6 (2nd, received €2) + fixture 7 (2nd, received €10) = 6.
+  assert.strictEqual(statValue(out, 'ITM'), 6);
 });
 
 test('parsing uses --name and is not hardcoded to a specific player', () => {
@@ -60,4 +60,13 @@ test('--anonymize replaces every occurrence of the real name', () => {
   const out = runCli(['--anonymize', '--view=detail']);
   assert.ok(!out.includes('TestHero'), 'real name must not leak when anonymized');
   assert.ok(out.includes('JohnDoe'), 'anonymized name should appear');
+});
+
+test('detail view counts a 2nd-place cash as ITM', () => {
+  // Fixtures include two hero 2nd-place cashes (HH20260706, HH20260707).
+  // Running over the full fixture range, ITM must be at least 2 (the placement cashes alone).
+  const out = runCli(['--view=detail']);
+  const itmVal = statValue(out, 'ITM');
+  assert.ok(itmVal !== null, 'ITM row present');
+  assert.ok(itmVal >= 2, `ITM should count the 2nd-place cashes, got ${itmVal}`);
 });

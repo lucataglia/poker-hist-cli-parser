@@ -13,6 +13,8 @@ test('buildDailyPL: groups per day with pl, game count, wins, itm, losses', () =
   // fixture 3: 20260103, hero wins -> pl +1, win + itm
   // fixture 4: 20260104, hero wins -> pl +1, win + itm
   // fixture 5: 20260105, hero wins -> pl +1, win + itm
+  // fixture 6: 20260706, hero 2nd place (received €2, buy-in €1) -> pl +1, itm (no win)
+  // fixture 7: 20260707, hero 2nd place (received €10, buy-in €5) -> pl +5, itm (no win)
   assert.deepStrictEqual(data, [
     {
       date: '20260101', pl: -1, games: 1, wins: 0, itm: 0, losses: 1,
@@ -29,12 +31,19 @@ test('buildDailyPL: groups per day with pl, game count, wins, itm, losses', () =
     {
       date: '20260105', pl: 1, games: 1, wins: 1, itm: 1, losses: 0,
     },
+    {
+      date: '20260706', pl: 1, games: 1, wins: 0, itm: 1, losses: 0,
+    },
+    {
+      date: '20260707', pl: 5, games: 1, wins: 0, itm: 1, losses: 0,
+    },
   ]);
 });
 
 test('buildDailyPL: timeFilter excludes earlier days', () => {
   const data = buildDailyPL(FIXTURES, 20260102, 'TestHero');
   // fixtures 2, 3, 4, 5 all pass the filter; each on their own date
+  // fixture 6 (20260706) and fixture 7 (20260707) also pass
   assert.deepStrictEqual(data, [
     {
       date: '20260102', pl: 1, games: 1, wins: 1, itm: 1, losses: 0,
@@ -47,6 +56,12 @@ test('buildDailyPL: timeFilter excludes earlier days', () => {
     },
     {
       date: '20260105', pl: 1, games: 1, wins: 1, itm: 1, losses: 0,
+    },
+    {
+      date: '20260706', pl: 1, games: 1, wins: 0, itm: 1, losses: 0,
+    },
+    {
+      date: '20260707', pl: 5, games: 1, wins: 0, itm: 1, losses: 0,
     },
   ]);
 });
