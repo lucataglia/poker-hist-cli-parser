@@ -16,7 +16,7 @@ function parseFileSync(filePath, filename, argvName, displayName, isLast) {
 
   const {
     moreThanFifty, lessThenFifty, wins, looses, total, itm,
-  } = allInParser(fileContent);
+  } = allInParser(fileContent, argvName);
 
   if (isLast) {
     console.log(`\n${chalk.cyan(printEquityStats(moreThanFifty, lessThenFifty, wins, looses, total, itm))}`);

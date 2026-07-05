@@ -1,90 +1,91 @@
-const chalk = require('chalk');
-const argv = require('minimist')(process.argv.slice(2));
-
-const mandatoryFields = ['timestamp', 'name'];
-const missingFields = mandatoryFields.filter((field) => !argv[field] || argv[field].toString().trim() === '');
-
-if (missingFields.length > 0) {
-  const tableData = missingFields.map((field) => ({ 'Missing field Name': field }));
-
-  console.log('\n');
-
-  console.error(chalk.yellow('Missing mandatory fields\n\n'));
-  console.table(tableData);
-
-  console.log('\n');
-
-  console.log(chalk.bold.cyan('Example: ') + chalk.cyan('node index.js --name=<your_poker_name> --dir=<abs_path> --timestamp=YYYYMMDD'));
-
-  console.log('\n');
-  process.exit(1);
-}
-
-console.clear();
-
+const path = require('path');
 const readline = require('readline');
+const argv = require('minimist')(process.argv.slice(2));
+const { loadEnv } = require('./src/config');
 const { parseAllOldFiles, buildDailyPL, buildAllInEV } = require('./src/parse-files/sync');
 const { renderPLChart, renderEVSummary } = require('./src/helpers');
 
+console.clear();
+
+const env = loadEnv(path.join(__dirname, '.env'));
+
+// Name precedence: --name (CLI) > PLAYER_NAME (.env) > interactive prompt.
+const nameFromArgs = argv.name && argv.name.toString().trim();
+const nameFromEnv = env.PLAYER_NAME && env.PLAYER_NAME.trim();
+
+// Silent defaults for dir and timestamp (user chose: dir=./, all history).
 const directoryArgv = argv.dir || './';
-const {
-  timestamp: timeFilterArgv,
-  name: argvName,
-  anonymize: argvAnonymyze,
-  view: viewArgv,
-} = argv;
+const timeFilterArgv = argv.timestamp !== undefined ? argv.timestamp : 0;
+const { anonymize: argvAnonymyze, view: viewArgv } = argv;
 
-const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
+const VALID_VIEWS = ['detail', 'graph', 'ev'];
 
-function showDetail() {
-  // The real name (argvName) drives parsing; anonymousName is only for display.
-  parseAllOldFiles(directoryArgv, timeFilterArgv, argvName, anonymousName);
-}
-
-function showGraph() {
-  const daily = buildDailyPL(directoryArgv, timeFilterArgv, argvName);
-  console.log('\n');
-  console.log(renderPLChart(daily));
-  console.log('\n');
-}
-
-function showEV() {
-  const totals = buildAllInEV(directoryArgv, timeFilterArgv, argvName);
-  console.log('\n');
-  console.log(renderEVSummary(totals));
-  console.log('\n');
-}
-
-function run(view) {
+function runWith(name, view) {
+  const anonymousName = argvAnonymyze ? 'JohnDoe' : name;
   if (view === 'graph') {
-    showGraph();
+    const daily = buildDailyPL(directoryArgv, timeFilterArgv, name);
+    console.log('\n');
+    console.log(renderPLChart(daily));
+    console.log('\n');
   } else if (view === 'ev') {
-    showEV();
+    const totals = buildAllInEV(directoryArgv, timeFilterArgv, name);
+    console.log('\n');
+    console.log(renderEVSummary(totals));
+    console.log('\n');
   } else {
-    showDetail();
+    // detail: real name drives parsing, anonymousName is only for display.
+    parseAllOldFiles(directoryArgv, timeFilterArgv, name, anonymousName);
   }
 }
 
-if (viewArgv === 'graph' || viewArgv === 'detail' || viewArgv === 'ev') {
-  run(viewArgv);
-} else {
+// Resolve name and view, prompting only for what is still missing.
+function resolve() {
+  const name = nameFromArgs || nameFromEnv || null;
+  const view = VALID_VIEWS.includes(viewArgv) ? viewArgv : null;
+
+  if (name && view) {
+    runWith(name, view);
+    return;
+  }
+
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const ask = () => {
+
+  const askView = (resolvedName) => {
     rl.question('Cosa vuoi vedere?\n  [1] Dettaglio all-in\n  [2] Grafico P/L giornaliero\n  [3] All-in EV summary\n> ', (answer) => {
       const choice = answer.trim();
-      if (choice === '1') {
+      const map = { 1: 'detail', 2: 'graph', 3: 'ev' };
+      if (map[choice]) {
         rl.close();
-        run('detail');
-      } else if (choice === '2') {
-        rl.close();
-        run('graph');
-      } else if (choice === '3') {
-        rl.close();
-        run('ev');
+        runWith(resolvedName, map[choice]);
       } else {
-        ask();
+        askView(resolvedName);
       }
     });
   };
-  ask();
+
+  const askName = (cb) => {
+    if (name) {
+      cb(name);
+      return;
+    }
+    rl.question('Qual è il tuo nome PokerStars? ', (answer) => {
+      const n = answer.trim();
+      if (n) {
+        cb(n);
+      } else {
+        askName(cb);
+      }
+    });
+  };
+
+  askName((resolvedName) => {
+    if (view) {
+      rl.close();
+      runWith(resolvedName, view);
+    } else {
+      askView(resolvedName);
+    }
+  });
 }
+
+resolve();

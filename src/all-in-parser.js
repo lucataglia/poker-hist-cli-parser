@@ -20,21 +20,24 @@ const MODE = {
   summary: 'SUMMARY',
 };
 
-const { name: argvName, anonymize: argvAnonymyze } = argv;
-const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
+const { name: argvNameFallback, anonymize: argvAnonymyze } = argv;
 
 const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-// Replace every occurrence of the real name with the display name (String.replace
-// only swaps the first match, which left the name visible on lines mentioning it twice).
-const anonymize = (str) => {
-  if (!argvAnonymyze || !argvName) {
-    return str;
-  }
-  return str.replace(new RegExp(escapeRegExp(argvName), 'g'), anonymousName);
-};
+// allInParser accepts playerName (resolved by the caller, e.g. from .env) and
+// falls back to the argv --name flag for backward compatibility.
+const allInParser = (data, playerName) => {
+  const argvName = playerName || argvNameFallback;
+  const anonymousName = argvAnonymyze ? 'JohnDoe' : argvName;
 
-const allInParser = (data) => {
+  // Replace every occurrence of the real name with the display name (String.replace
+  // only swaps the first match, which left the name visible on lines mentioning it twice).
+  const anonymize = (str) => {
+    if (!argvAnonymyze || !argvName) {
+      return str;
+    }
+    return str.replace(new RegExp(escapeRegExp(argvName), 'g'), anonymousName);
+  };
   total += 1;
 
   // Count an in-the-money finish for this tournament: PokerStars writes

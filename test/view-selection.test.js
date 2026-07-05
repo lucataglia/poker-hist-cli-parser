@@ -37,3 +37,26 @@ test('--view=ev renders the all-in EV summary', () => {
   assert.ok(out.includes('All-in EV summary'), 'shows the EV summary header');
   assert.ok(!out.includes('All-in ≥ 50% Equity'), 'not the detail stats box');
 });
+
+const fs = require('node:fs');
+
+test('name is read from .env when --name is absent', () => {
+  // Write a temporary .env in the project root with PLAYER_NAME, run without --name.
+  const envPath = path.join(ROOT, '.env');
+  const had = fs.existsSync(envPath);
+  const backup = had ? fs.readFileSync(envPath) : null;
+  fs.writeFileSync(envPath, 'PLAYER_NAME=TestHero\n');
+  try {
+    const out = execFileSync('node', [
+      path.join(ROOT, 'index.js'),
+      '--timestamp=20260101',
+      `--dir=${FIXTURES}`,
+      '--view=detail',
+    ], { encoding: 'utf8', cwd: ROOT })
+      // eslint-disable-next-line no-control-regex
+      .replace(/\[[0-9;]*m/g, '').replace(/\[[0-9]*[A-Z]/g, '');
+    assert.ok(out.includes('All-in ≥ 50% Equity'), 'detail view ran using .env name');
+  } finally {
+    if (had) { fs.writeFileSync(envPath, backup); } else { fs.rmSync(envPath); }
+  }
+});
