@@ -175,6 +175,14 @@ function formatDateShort(yyyymmdd) {
   return `${day} ${month}`;
 }
 
+function formatDateLong(yyyymmdd) {
+  const short = formatDateShort(yyyymmdd); // 'DD Mmm' or the raw input if malformed
+  if (short === yyyymmdd) {
+    return yyyymmdd;
+  }
+  return `${short} ${yyyymmdd.slice(0, 4)}`;
+}
+
 function extractTimeFromFilename(filename) {
   const regex = /HH(\d{8})/;
   const match = filename.match(regex);
@@ -277,6 +285,8 @@ const round2 = (n) => Math.round(n * 100) / 100;
 function renderEVSummary(totals) {
   const {
     count, actualChips, evChips, avgEquity,
+    aheadCount = 0, actualBb = 0, evBb = 0,
+    tournaments = 0, periodStart = null, periodEnd = null,
   } = totals;
   if (!count) {
     return 'No all-in showdowns found';
@@ -284,17 +294,36 @@ function renderEVSummary(totals) {
   const luck = actualChips - evChips;
   const luckStr = `${luck >= 0 ? '+' : ''}${luck}`;
   const luckColored = luck >= 0 ? chalk.green(luckStr) : chalk.red(luckStr);
-  const avgPct = (avgEquity * 100).toFixed(1);
 
-  const lines = [
-    'All-in EV summary (showdown hands only)',
-    '',
-    `  All-ins analyzed       ${count}`,
-    `  Actual chips won       ${actualChips}`,
-    `  Expected chips (EV)    ${evChips}`,
-    `  Luck (actual - EV)     ${luckColored}`,
-    `  Avg equity when all-in ${avgPct}%`,
-  ];
+  const luckBb = Math.round((actualBb - evBb) * 10) / 10;
+  const luckBbStr = `${luckBb >= 0 ? '+' : ''}${luckBb}`;
+  const luckBbColored = luckBb >= 0 ? chalk.green(luckBbStr) : chalk.red(luckBbStr);
+
+  const avgPct = (avgEquity * 100).toFixed(1);
+  const aheadPct = Math.round((aheadCount / count) * 100);
+
+  const lines = ['All-in EV summary (showdown hands only)', ''];
+
+  if (periodStart) {
+    const period = (periodEnd && periodEnd !== periodStart)
+      ? `${formatDateLong(periodStart)} → ${formatDateLong(periodEnd)}`
+      : formatDateLong(periodStart);
+    lines.push(`  Period                 ${period}`);
+  }
+  lines.push(`  Tournaments            ${tournaments}`);
+  lines.push('');
+  lines.push(`  All-ins analyzed       ${count}`);
+  lines.push(`  Actual chips won       ${actualChips}  (${actualBb} bb)`);
+  lines.push(`  Expected chips (EV)    ${evChips}  (${evBb} bb)`);
+  lines.push(`  Luck (actual - EV)     ${luckColored}  (${luckBbColored} bb)`);
+  lines.push(`  Avg equity when all-in ${avgPct}%`);
+  lines.push(`  All-in ahead (>=50%)   ${aheadPct}%`);
+
+  if (count < 30) {
+    lines.push('');
+    lines.push(chalk.yellow('  ⚠ Small sample (<30 all-ins) - treat as indicative only'));
+  }
+
   return lines.join('\n');
 }
 

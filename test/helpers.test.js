@@ -124,3 +124,44 @@ test('renderEVSummary: negative luck is colored red', () => {
   // eslint-disable-next-line no-control-regex
   assert.ok(/\[31m/.test(raw), 'negative luck should be colored red (ANSI 31)');
 });
+
+test('renderEVSummary: shows period, tournaments, bb, ahead% and sample note', () => {
+  const out = stripAnsi(renderEVSummary({
+    count: 10,
+    actualChips: 100,
+    evChips: 300,
+    avgEquity: 0.4,
+    aheadCount: 4,
+    actualBb: 12.5,
+    evBb: 37.5,
+    tournaments: 8,
+    periodStart: '20260704',
+    periodEnd: '20260706',
+  }));
+  assert.ok(out.includes('04 Jul 2026'), 'period start shown');
+  assert.ok(out.includes('06 Jul 2026'), 'period end shown');
+  assert.ok(out.includes('Tournaments'), 'tournaments row');
+  assert.ok(out.includes('8'), 'tournaments count');
+  assert.ok(out.includes('12.5'), 'actual bb');
+  assert.ok(out.includes('37.5'), 'ev bb');
+  assert.ok(/40%/.test(out), 'ahead% = 4/10 = 40%');
+  assert.ok(/Small sample/i.test(out), 'sample note for count < 30');
+});
+
+test('renderEVSummary: single-day period has no arrow, and no note when count >= 30', () => {
+  const out = stripAnsi(renderEVSummary({
+    count: 50,
+    actualChips: 100,
+    evChips: 90,
+    avgEquity: 0.55,
+    aheadCount: 30,
+    actualBb: 5,
+    evBb: 4.5,
+    tournaments: 20,
+    periodStart: '20260704',
+    periodEnd: '20260704',
+  }));
+  assert.ok(out.includes('04 Jul 2026'), 'single day shown');
+  assert.ok(!out.includes('→'), 'no arrow for a single-day period');
+  assert.ok(!/Small sample/i.test(out), 'no sample note when count >= 30');
+});
