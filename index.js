@@ -52,7 +52,7 @@ function resolve() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
   const askView = (resolvedName) => {
-    rl.question('Cosa vuoi vedere?\n  [1] Dettaglio all-in\n  [2] Grafico P/L giornaliero\n  [3] All-in EV summary\n> ', (answer) => {
+    rl.question('Cosa vuoi vedere?\n  [1] Dettaglio all-in        (--view=detail)\n  [2] Grafico P/L giornaliero (--view=graph)\n  [3] All-in EV summary       (--view=ev)\n> ', (answer) => {
       const choice = answer.trim();
       const map = { 1: 'detail', 2: 'graph', 3: 'ev' };
       if (map[choice]) {
