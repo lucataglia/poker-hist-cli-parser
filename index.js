@@ -2,7 +2,9 @@ const path = require('path');
 const readline = require('readline');
 const argv = require('minimist')(process.argv.slice(2));
 const { loadEnv } = require('./src/config');
-const { parseAllOldFiles, buildDailyPL, buildAllInEV } = require('./src/parse-files/sync');
+const {
+  parseAllOldFiles, buildDailyPL, buildAllInEV, buildShowdownSplit,
+} = require('./src/parse-files/sync');
 const { renderPLChart, renderEVSummary } = require('./src/helpers');
 
 console.clear();
@@ -30,8 +32,9 @@ function runWith(name, view) {
     console.log('\n');
   } else if (view === 'ev') {
     const totals = buildAllInEV(directoryArgv, timeFilterArgv, name);
+    const split = buildShowdownSplit(directoryArgv, timeFilterArgv, name);
     console.log('\n');
-    console.log(renderEVSummary(totals));
+    console.log(renderEVSummary({ ...totals, sdBb: split.sdBb, nonSdBb: split.nonSdBb }));
     console.log('\n');
   } else {
     // detail: real name drives parsing, anonymousName is only for display.

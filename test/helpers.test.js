@@ -165,3 +165,34 @@ test('renderEVSummary: single-day period has no arrow, and no note when count >=
   assert.ok(!out.includes('→'), 'no arrow for a single-day period');
   assert.ok(!/Small sample/i.test(out), 'no sample note when count >= 30');
 });
+
+test('renderEVSummary: shows showdown and non-showdown bb rows when present', () => {
+  const out = stripAnsi(renderEVSummary({
+    count: 10,
+    actualChips: 100,
+    evChips: 90,
+    avgEquity: 0.5,
+    aheadCount: 5,
+    actualBb: 5,
+    evBb: 4.5,
+    tournaments: 8,
+    periodStart: '20260704',
+    periodEnd: '20260706',
+    sdBb: 120.5,
+    nonSdBb: -70.5,
+  }));
+  assert.ok(out.includes('Showdown (bb)'), 'showdown row');
+  assert.ok(out.includes('120.5'), 'showdown value');
+  assert.ok(out.includes('Non-showdown (bb)'), 'non-showdown row');
+  assert.ok(out.includes('-70.5'), 'non-showdown value');
+});
+
+test('renderEVSummary: omits split rows when sd/nonSd absent', () => {
+  const out = stripAnsi(renderEVSummary({
+    count: 5,
+    actualChips: 10,
+    evChips: 10,
+    avgEquity: 0.5,
+  }));
+  assert.ok(!out.includes('Non-showdown'), 'no split rows without data');
+});

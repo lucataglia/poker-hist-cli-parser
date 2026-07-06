@@ -287,6 +287,7 @@ function renderEVSummary(totals) {
     count, actualChips, evChips, avgEquity,
     aheadCount = 0, actualBb = 0, evBb = 0,
     tournaments = 0, periodStart = null, periodEnd = null,
+    sdBb = null, nonSdBb = null,
   } = totals;
   if (!count) {
     return 'No all-in showdowns found';
@@ -318,6 +319,14 @@ function renderEVSummary(totals) {
   lines.push(`  Luck (actual - EV)     ${luckColored}  (${luckBbColored} bb)`);
   lines.push(`  Avg equity when all-in ${avgPct}%`);
   lines.push(`  All-in ahead (>=50%)   ${aheadPct}%`);
+
+  if (sdBb !== null && nonSdBb !== null) {
+    const sdStr = `${sdBb >= 0 ? '+' : ''}${sdBb}`;
+    const nonSdStr = `${nonSdBb >= 0 ? '+' : ''}${nonSdBb}`;
+    lines.push('');
+    lines.push(`  Showdown (bb)          ${sdBb >= 0 ? chalk.green(sdStr) : chalk.red(sdStr)}`);
+    lines.push(`  Non-showdown (bb)      ${nonSdBb >= 0 ? chalk.green(nonSdStr) : chalk.red(nonSdStr)}`);
+  }
 
   if (count < 30) {
     lines.push('');

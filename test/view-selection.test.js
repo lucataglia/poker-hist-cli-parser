@@ -40,6 +40,11 @@ test('--view=ev renders the all-in EV summary', () => {
   assert.ok(!out.includes('All-in ≥ 50% Equity'), 'not the detail stats box');
 });
 
+test('--view=ev output includes the showdown split rows', () => {
+  const out = runCli(['--view=ev']);
+  assert.ok(out.includes('Non-showdown (bb)'), 'EV view shows the split');
+});
+
 test('name is read from .env when --name is absent', () => {
   // Write a temp .env in the OS temp dir so the real project-root .env is never touched.
   // index.js honours POKER_ENV_PATH when set, so we pass it in the child env.
