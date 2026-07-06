@@ -24,3 +24,13 @@ test('buildAllInEV: timeFilter excludes earlier files', () => {
   assert.strictEqual(totals.count, 5);
   assert.strictEqual(totals.actualChips, 1500);
 });
+
+test('buildAllInEV: reports tournaments count and real date range', () => {
+  const totals = buildAllInEV(FIXTURES, 20260101, 'TestHero');
+  // All fixture files from 20260101 onward are counted as tournaments.
+  assert.ok(totals.tournaments >= 6, `tournaments >= 6, got ${totals.tournaments}`);
+  assert.strictEqual(totals.periodStart, '20260101');
+  assert.strictEqual(totals.periodEnd, '20260707'); // latest fixture date
+  assert.ok(typeof totals.aheadCount === 'number', 'aheadCount present');
+  assert.ok(typeof totals.evBb === 'number', 'evBb present');
+});

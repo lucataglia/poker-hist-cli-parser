@@ -108,20 +108,42 @@ function buildAllInEV(directory, timeFilter, playerName) {
   let actualChips = 0;
   let evChips = 0;
   let equitySum = 0;
+  let aheadCount = 0;
+  let actualBb = 0;
+  let evBb = 0;
+  let periodStart = null;
+  let periodEnd = null;
 
   files.forEach((filename) => {
+    const date = extractTimeFromFilename(filename);
+    if (date !== null) {
+      if (periodStart === null || date < periodStart) { periodStart = date; }
+      if (periodEnd === null || date > periodEnd) { periodEnd = date; }
+    }
     const content = fs.readFileSync(path.join(directory, filename), 'utf8');
     const { totals } = parseAllInEV(content, playerName);
     count += totals.count;
     actualChips += totals.actualChips;
     evChips += totals.evChips;
-    // Weighted equity sum: avgEquity * count gives sum of equities for this file.
     equitySum += totals.avgEquity * totals.count;
+    aheadCount += totals.aheadCount;
+    actualBb += totals.actualBb;
+    evBb += totals.evBb;
   });
 
+  const round1 = (n) => Math.round(n * 10) / 10;
   const avgEquity = count === 0 ? 0 : equitySum / count;
   return {
-    count, actualChips, evChips, avgEquity,
+    count,
+    actualChips,
+    evChips,
+    avgEquity,
+    aheadCount,
+    actualBb: round1(actualBb),
+    evBb: round1(evBb),
+    tournaments: files.length,
+    periodStart,
+    periodEnd,
   };
 }
 
