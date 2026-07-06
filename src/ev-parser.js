@@ -121,17 +121,15 @@ function parseAllInEV(fileContent, playerName) {
     }
   });
 
-  const round1 = (n) => Math.round(n * 10) / 10;
-
   const count = spots.length;
   const actualChips = spots.reduce((s, x) => s + x.actual, 0);
   const evChips = spots.reduce((s, x) => s + round(x.equity * x.pot), 0);
   const equitySum = spots.reduce((s, x) => s + x.equity, 0);
   const avgEquity = count === 0 ? 0 : equitySum / count;
   const aheadCount = spots.filter((x) => x.equity >= 0.5).length;
-  // bb-denominated totals: per-spot chips/bb, skipping spots with no bb.
-  const actualBb = round1(spots.reduce((s, x) => (x.bb ? s + x.actual / x.bb : s), 0));
-  const evBb = round1(spots.reduce((s, x) => (x.bb ? s + (x.equity * x.pot) / x.bb : s), 0));
+  // bb-denominated totals: raw (unrounded) sums — rounding happens once in buildAllInEV.
+  const actualBb = spots.reduce((s, x) => (x.bb !== null && x.bb ? s + x.actual / x.bb : s), 0);
+  const evBb = spots.reduce((s, x) => (x.bb !== null && x.bb ? s + (x.equity * x.pot) / x.bb : s), 0);
 
   return {
     spots,

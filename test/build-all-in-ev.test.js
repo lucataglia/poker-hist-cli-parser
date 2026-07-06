@@ -30,7 +30,7 @@ test('buildAllInEV: reports tournaments count and real date range', () => {
   // All fixture files from 20260101 onward are counted as tournaments.
   assert.ok(totals.tournaments >= 6, `tournaments >= 6, got ${totals.tournaments}`);
   assert.strictEqual(totals.periodStart, '20260101');
-  assert.strictEqual(totals.periodEnd, '20260707'); // latest fixture date
+  assert.strictEqual(totals.periodEnd, '20260707'); // latest fixture date is 20260707
   assert.ok(typeof totals.aheadCount === 'number', 'aheadCount present');
   assert.ok(typeof totals.evBb === 'number', 'evBb present');
 });
