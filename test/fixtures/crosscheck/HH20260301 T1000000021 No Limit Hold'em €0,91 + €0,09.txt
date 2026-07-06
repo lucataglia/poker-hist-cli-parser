@@ -1,0 +1,49 @@
+PokerStars Hand #100000000040: Tournament #1000000021, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0021] - 2026/03/02 10:00:00 CET [2026/03/02 04:00:00 ET]
+Table '1000000021 1' 3-max Seat #1 is the button
+Seat 1: Villain1 (700 in chips)
+Seat 2: Villain2 (300 in chips)
+Seat 3: TestHero (500 in chips)
+Villain1: posts small blind 10
+Villain2: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Ks Qh]
+TestHero: raises 40 to 60
+Villain1: calls 50
+Villain2: calls 40
+*** FLOP *** [Ah 3d 8c]
+Villain1: checks
+Villain2: checks
+TestHero: checks
+Villain1: bets 40
+Villain2: calls 40
+TestHero: calls 40
+Villain1: raises 160 to 200
+Villain2: folds
+TestHero: raises 200 to 400
+Villain1: folds
+Uncalled bet (200) returned to TestHero
+TestHero collected 620 from pot
+*** SUMMARY ***
+Total pot 620 | Rake 0
+Board [Ah 3d 8c]
+Seat 1: Villain1 (small blind) folded on the Flop
+Seat 2: Villain2 (big blind) folded on the Flop
+Seat 3: TestHero (button) collected (620)
+PokerStars Hand #100000000041: Tournament #1000000021, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0021] - 2026/03/02 10:02:00 CET [2026/03/02 04:02:00 ET]
+Table '1000000021 1' 3-max Seat #2 is the button
+Seat 1: Villain1 (440 in chips)
+Seat 2: Villain2 (200 in chips)
+Seat 3: TestHero (860 in chips)
+Villain2: posts small blind 10
+TestHero: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [2c 7d]
+Villain1: folds
+Villain2: folds
+Uncalled bet (10) returned to Villain2
+TestHero collected 20 from pot
+*** SUMMARY ***
+Total pot 20 | Rake 0
+Seat 1: Villain1 (button) folded before Flop (didn't bet)
+Seat 2: Villain2 (small blind) folded before Flop
+Seat 3: TestHero (big blind) collected (20)

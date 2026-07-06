@@ -13,7 +13,7 @@ function startStack(handText, escapedName) {
 }
 
 // True if the hero reached showdown in this hand.
-function heroWentToShowdown(handText, playerName, escapedName) {
+function heroWentToShowdown(handText, escapedName) {
   if (!handText.includes('*** SHOW DOWN ***')) {
     return false;
   }
@@ -38,15 +38,20 @@ function netByActions(handText, playerName, escapedName) {
   let cm = collectedRe.exec(handText);
   while (cm) { collected += Number(cm[1]); cm = collectedRe.exec(handText); }
 
-  // Split into streets; for each street, hero commitment = max(sum of call+bet, highest raise "to").
-  // Blinds posted preflop are commitment on the preflop street.
+  // Split into streets; for each street walk the hero's action lines IN ORDER and maintain a
+  // running total of chips committed on that street:
+  //   - blind / ante post  → running += amount   (preflop only; ante applies any street idx=0)
+  //   - "bets N"           → running += N         (first wager on a postflop street, running was 0)
+  //   - "calls N"          → running += N         (N is the INCREMENT the hero adds)
+  //   - "raises X to M"    → running  = M         (M is already the TOTAL committed that street)
+  // streetCommit = final running value.  Both "raise-then-call" and "call-then-raise" shapes
+  // are handled correctly because raises always write the cumulative total ("to M"), so any
+  // prior calls/blinds on that street are already embedded in M.
   const streets = handText.split(/\*\*\* (?:FLOP|TURN|RIVER|SHOW DOWN|SUMMARY) \*\*\*/);
   // streets[0] contains header + hole cards + preflop actions.
   let contribution = 0;
   streets.forEach((street, idx) => {
-    let sumCallBet = 0;
-    let maxRaiseTo = 0;
-    let blinds = 0;
+    let running = 0;
     street.split('\n').forEach((line) => {
       if (!line.startsWith(`${playerName}:`)) { return; }
       const raise = line.match(/raises \d+ to (\d+)/);
@@ -55,23 +60,14 @@ function netByActions(handText, playerName, escapedName) {
       const sb = line.match(/posts small blind (\d+)/);
       const bbMatch = line.match(/posts big blind (\d+)/);
       const ante = line.match(/posts the ante (\d+)/);
-      if (raise) { maxRaiseTo = Math.max(maxRaiseTo, Number(raise[1])); }
-      if (bet) { sumCallBet += Number(bet[1]); }
-      if (call) { sumCallBet += Number(call[1]); }
-      if (idx === 0 && sb) { blinds += Number(sb[1]); }
-      if (idx === 0 && bbMatch) { blinds += Number(bbMatch[1]); }
-      if (ante) { blinds += Number(ante[1]); }
+      if (raise) { running = Number(raise[1]); }
+      if (bet) { running += Number(bet[1]); }
+      if (call) { running += Number(call[1]); }
+      if (idx === 0 && sb) { running += Number(sb[1]); }
+      if (idx === 0 && bbMatch) { running += Number(bbMatch[1]); }
+      if (ante) { running += Number(ante[1]); }
     });
-    // PokerStars format invariant: "calls X" lines write X as the INCREMENT (chips added
-    // to the pot), never a running total; "raises N to M" writes M as the TOTAL committed
-    // on that street, already embedding any preflop blind. So maxRaiseTo + sumCallBet
-    // correctly reconstructs total street commitment; blinds must NOT be added on top of
-    // a raise (already embedded in the "to" value). Adapting to formats where calls/raises
-    // represent running totals would require changing this formula and the summing logic.
-    const streetCommit = maxRaiseTo > 0
-      ? maxRaiseTo + sumCallBet
-      : sumCallBet + blinds;
-    contribution += streetCommit;
+    contribution += running;
   });
 
   // Subtract uncalled bet returned to hero.
@@ -83,11 +79,13 @@ function netByActions(handText, playerName, escapedName) {
   return collected - (contribution - uncalled);
 }
 
+// Assumes one file = one complete single-table tournament (SNG).
+// Multi-file MTTs where a tournament spans files would misattribute the first hand
+// as a fresh buy-in.
 function parseShowdownSplit(fileContent, playerName) {
   const escapedName = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Split into hands, keep only those where the hero is seated.
   const hands = fileContent.split('PokerStars Hand')
-    .map((h) => h)
     .filter((h) => new RegExp(`^Seat \\d+: ${escapedName} \\(`, 'm').test(h));
 
   let sdChips = 0;
@@ -109,7 +107,7 @@ function parseShowdownSplit(fileContent, playerName) {
     }
 
     const bb = handBigBlind(hand);
-    const isSd = heroWentToShowdown(hand, playerName, escapedName);
+    const isSd = heroWentToShowdown(hand, escapedName);
     if (isSd) {
       sdChips += net;
       if (bb) { sdBb += net / bb; }

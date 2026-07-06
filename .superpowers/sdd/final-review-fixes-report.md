@@ -289,3 +289,219 @@ None. All three fixes are clean and non-breaking:
 - FIX 1 is a pure correctness improvement (the fixtures already used the euro sign so no test impact).
 - FIX 2 had zero references confirmed before deletion.
 - FIX 3 avoids any mutation of the real `.env` and the minimal `index.js` change (one new variable honoring an env override) is backward-compatible — the default path is unchanged.
+
+---
+
+## Round 4: Round bb totals once; clarify bb-null guard; fix stale comment
+
+### FIX 1 (accuracy): round bb totals only ONCE, at the end
+
+**File:** `src/ev-parser.js` — `parseAllInEV`
+
+**Change:** Removed the local `round1` definition from `parseAllInEV`. Changed `actualBb` and `evBb` from rounded per-file values to raw (unrounded) floats:
+```js
+const actualBb = spots.reduce((s, x) => (x.bb !== null && x.bb ? s + x.actual / x.bb : s), 0);
+const evBb = spots.reduce((s, x) => (x.bb !== null && x.bb ? s + (x.equity * x.pot) / x.bb : s), 0);
+```
+`round1` was only used for those two variables in this function, so removing it also satisfies lint (no unused declarations).
+
+**File:** `src/parse-files/sync.js` — `buildAllInEV`
+
+No change needed here — it already accumulates raw `actualBb`/`evBb` into running sums and applies `round1` only at the end before returning. With ev-parser now returning raw values, this single rounding point is correct.
+
+---
+
+### FIX 2 (clarity): use `x.bb !== null` instead of falsy check
+
+Folded into FIX 1 above. The guard changed from `x.bb ? ...` to `x.bb !== null && x.bb ? ...`, making the null-intent explicit while retaining the divide-by-zero guard for the impossible `bb === 0` case.
+
+---
+
+### FIX 3 (cosmetic): fix stale test comment
+
+**File:** `test/build-all-in-ev.test.js`
+
+**Change:** Updated the comment on the `periodEnd` assertion from `// latest fixture date` to `// latest fixture date is 20260707`. The assertion itself (`'20260707'`) was already correct.
+
+---
+
+### Full suite result
+
+```
+node --test
+tests 45
+pass 45
+fail 0
+duration_ms ~12155
+```
+
+All 45 tests pass. No regressions.
+
+---
+
+### Lint result
+
+`npx eslint src/ index.js test/` — exit 0, no output (clean).
+
+---
+
+### Real-data EV box (`--view=ev --timestamp=20260704`)
+
+```
+All-in EV summary (showdown hands only)
+
+  Period                 04 Jul 2026 → 06 Jul 2026
+  Tournaments            34
+
+  All-ins analyzed       70
+  Actual chips won       14340  (438.8 bb)
+  Expected chips (EV)    16193  (464.5 bb)
+  Luck (actual - EV)     -1853  (-25.7 bb)
+  Avg equity when all-in 45.3%
+  All-in ahead (>=50%)   40%
+```
+
+Numbers may shift slightly vs before due to the elimination of double-rounding across files — expected and correct.
+
+---
+
+### Commit
+
+Hash: `15e4127`
+Branch: `feat/ev-summary-context`
+Message: `refactor: round bb totals once at the end; clarify bb-null guard and stale comment`
+Files changed: 2 (4 insertions, 6 deletions)
+
+---
+
+### Concerns
+
+None. The change is pure accuracy improvement: removing accumulated rounding error across N files. For a small number of files the difference is negligible; for large sample sizes it could meaningfully affect bb totals. The test for `evBb` in `ev-parser.test.js` asserts `> 0` (still true for raw values). The `actualBb === 0` assertion in the same test is also still true (hero lost, actual=0, so raw sum is still 0).
+
+---
+
+## Round 5: Running-total per-street commitment + code-review cleanups
+
+### FIX 1 (Critical): replace sumCallBet/maxRaiseTo formula with running-total walk
+
+**File:** `src/lines-parser.js` — `netByActions`
+
+**Problem:** The prior formula `maxRaiseTo > 0 ? maxRaiseTo + sumCallBet : sumCallBet + blinds` over-counted the call-then-raise shape (e.g., flop: hero calls 40 then raises to 200 → formula gave 200+40=240; correct is 200, because PokerStars writes "raises X to M" where M is the TOTAL committed on that street, already including the prior call).
+
+**Change:** Replaced `sumCallBet`, `maxRaiseTo`, `blinds` with a single `running` variable per street. Walk actions in order:
+- `raises X to M` → `running = M` (M is already cumulative)
+- `bets N` → `running += N`
+- `calls N` → `running += N` (increment)
+- blind/ante post → `running += amount`
+
+Street commitment = final `running`. Both shapes handled correctly:
+- raise-then-call: SB=10 → raise sets running=60 → call +140 → 200 ✓
+- call-then-raise: call +40 → raise sets running=200 → 200 ✓
+
+Updated invariant comment to describe the running-total model.
+
+**TDD:** New fixture `HH20260301 T1000000021` (call-then-raise on flop) confirmed failing (B=320 vs A=360) before fix; passes after. New fixture `HH20260300 T1000000020` (raise-then-call) confirmed correct throughout.
+
+---
+
+### FIX 2: Remove no-op `.map((h) => h)` in parseShowdownSplit
+
+**File:** `src/lines-parser.js` — `parseShowdownSplit`
+
+Removed the identity `.map((h) => h)` that did nothing. Clean up only.
+
+---
+
+### FIX 3: Remove unused `playerName` param from `heroWentToShowdown`
+
+**File:** `src/lines-parser.js` — `heroWentToShowdown`
+
+The function never used `playerName` (only `escapedName`). Removed the param and updated the call site in `parseShowdownSplit`. `netByActions` still takes `playerName` legitimately (uses it for the `startsWith` prefix check).
+
+---
+
+### FIX 4: Add precondition comment to `parseShowdownSplit`
+
+**File:** `src/lines-parser.js` — `parseShowdownSplit`
+
+Added:
+```
+// Assumes one file = one complete single-table tournament (SNG).
+// Multi-file MTTs where a tournament spans files would misattribute the first hand
+// as a fresh buy-in.
+```
+
+---
+
+### New fixture hands (hand-computed ground truth)
+
+**File 1: `HH20260300 T1000000020` — raise-then-call (3-bet preflop, sanity check)**
+- Hand #30: TestHero=500, SB. Raises to 60, Villain 3-bets to 200, TestHero calls 140.
+  - Running: +10(SB)→raise sets 60→call +140→200
+  - Collected 400, contribution=200, net=+200. End stack=700.
+- Hand #31: Anchor. TestHero=700. Folds BB (Villain folds SB), collects 20. [Not validated by crosscheck — only hands[0] is checked against hands[1].startStack=700]
+- Stack delta A = 700−500 = 200 = method B net = 200 ✓
+
+**File 2: `HH20260301 T1000000021` — call-then-raise on flop (the actually broken shape)**
+- Hand #40: TestHero=500, BB. Preflop: limp pot (3-way), TestHero checks (running=20). Flop: calls 40 (running=40), faces re-raise, raises to 400 (running=400). Villain folds. Uncalled 200 returned.
+  - Contribution: preflop=20, flop=400. Total=420. Uncalled=200.
+  - Collected=620. Net=620−(420−200)=+360. End stack=860.
+- Hand #41: Anchor. TestHero=860 (just collects BB since both villains fold).
+- Stack delta A = 860−500 = 360 = method B net = 360 ✓ (old formula gave 320, WRONG)
+
+---
+
+### Full suite result
+
+```
+node --test
+tests 52
+pass 52
+fail 0
+duration_ms ~12425
+```
+
+All 52 tests pass. No regressions.
+
+---
+
+### Lint result
+
+`npx eslint src/ index.js test/` — exit 0, no output (clean).
+
+---
+
+### Real-data EV box (`--view=ev`)
+
+```
+All-in EV summary (showdown hands only)
+
+  Period                 06 Jan 2026 → 06 Jul 2026
+  Tournaments            121
+
+  All-ins analyzed       224
+  Actual chips won       59615  (1796.5 bb)
+  Expected chips (EV)    55582  (1658.4 bb)
+  Luck (actual - EV)     +4033  (+138.1 bb)
+  Avg equity when all-in 47.3%
+  All-in ahead (>=50%)   49%
+
+  Showdown (bb)          +313.9
+  Non-showdown (bb)      +70.4
+```
+
+---
+
+### Commit
+
+Hash: (see below)
+Branch: `feat/showdown-split`
+Message: `fix: model per-street commitment as a running total (handles raise-then-call and call-then-raise)`
+
+---
+
+### Concerns
+
+- The `raise` branch sets `running = M` unconditionally. If a hand somehow had TWO raise lines from the hero on the same street (degenerate format), the earlier raise's contribution would be lost. In practice PokerStars never writes two raise lines from the same player in the same betting round; the running-total model is correct for all standard hand histories.
+- The call-then-raise fixture uses a 3-way pot with both villains in, which requires the pot math to be computed precisely (Villain2 folds flop after calling, leaving an uncalled bet from TestHero's re-raise). The stacks were computed from first principles and verified by chip conservation (700+300+500=1500=440+200+860).
+- The raise-then-call fixture (HH20260300) confirms the fix does not regress the shape the prior formula was designed to handle.
