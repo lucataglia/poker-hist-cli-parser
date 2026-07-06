@@ -45,12 +45,33 @@ function parseWon(fileContent, playerName) {
   return re.test(fileContent);
 }
 
+// Finish position: "<name> wins the tournament" -> 1; "<name> finished the
+// tournament in <N>th place" -> N; null if neither present.
+function parsePosition(fileContent, playerName) {
+  const escaped = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (new RegExp(`^${escaped} wins the tournament\\b`, 'm').test(fileContent)) {
+    return 1;
+  }
+  const m = fileContent.match(new RegExp(`^${escaped} finished the tournament in (\\d+)`, 'm'));
+  return m ? Number(m[1]) : null;
+}
+
+// Prize pool = 1st-place prize = the first "<anyone> wins the tournament and
+// receives €X" in the file. null if absent (common when the hero busts 3rd and
+// the tournament continues off the hero's table).
+function parsePrizePool(fileContent) {
+  const m = fileContent.match(/wins the tournament and receives €\s*(\d+(?:[.,]\d+)?)/);
+  return m ? parseFloat(m[1].replace(',', '.')) : null;
+}
+
 function parsePL(fileContent, playerName) {
   const buyIn = parseBuyIn(fileContent);
   const prize = parsePrize(fileContent, playerName);
   const won = parseWon(fileContent, playerName);
+  const position = parsePosition(fileContent, playerName);
+  const prizePool = parsePrizePool(fileContent);
   return {
-    prize, buyIn, pl: round2(prize - buyIn), won,
+    prize, buyIn, pl: round2(prize - buyIn), won, position, prizePool,
   };
 }
 

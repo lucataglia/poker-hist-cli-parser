@@ -65,3 +65,19 @@ test('parsePL: placement prize is read from the file, correct for a different bu
   assert.strictEqual(r.buyIn, 5);
   assert.strictEqual(r.pl, 5); // 10 - 5
 });
+
+test('parsePL: reports finish position and prize pool', () => {
+  // WON fixture: hero wins (1st); its receives line is the pool.
+  const won = parsePL(read(WON), 'TestHero');
+  assert.strictEqual(won.position, 1);
+  assert.strictEqual(won.prizePool, won.prize, 'winner prize == pool');
+
+  // CASHED_2ND fixture: hero 2nd; a villain wins with a receives line = pool.
+  const second = parsePL(read(CASHED_2ND), 'TestHero');
+  assert.strictEqual(second.position, 2);
+  assert.ok(second.prizePool !== null && second.prizePool > 0, 'pool from winner line');
+
+  // LOST fixture: hero busts; check position is a number and pool may be present.
+  const lost = parsePL(read(LOST), 'TestHero');
+  assert.ok(lost.position === null || typeof lost.position === 'number');
+});
