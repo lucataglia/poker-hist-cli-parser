@@ -62,9 +62,12 @@ function netByActions(handText, playerName, escapedName) {
       if (idx === 0 && bbMatch) { blinds += Number(bbMatch[1]); }
       if (ante) { blinds += Number(ante[1]); }
     });
-    // On the preflop street, blinds are embedded in the "to" amount for a raise.
-    // When hero raises and later calls (re-raise scenario), both amounts add up.
-    // When hero only calls/bets (no raise), add blinds since they aren't embedded.
+    // PokerStars format invariant: "calls X" lines write X as the INCREMENT (chips added
+    // to the pot), never a running total; "raises N to M" writes M as the TOTAL committed
+    // on that street, already embedding any preflop blind. So maxRaiseTo + sumCallBet
+    // correctly reconstructs total street commitment; blinds must NOT be added on top of
+    // a raise (already embedded in the "to" value). Adapting to formats where calls/raises
+    // represent running totals would require changing this formula and the summing logic.
     const streetCommit = maxRaiseTo > 0
       ? maxRaiseTo + sumCallBet
       : sumCallBet + blinds;
