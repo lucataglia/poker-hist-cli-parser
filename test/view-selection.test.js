@@ -45,6 +45,12 @@ test('--view=ev output includes the showdown split rows', () => {
   assert.ok(out.includes('Non-showdown (bb)'), 'EV view shows the split');
 });
 
+test('--view=graph includes per-day detail and totals summary', () => {
+  const out = runCli(['--view=graph']);
+  assert.ok(/Spin&Go|torneo/.test(out), 'per-tournament rows present');
+  assert.ok(out.includes('Giocate:'), 'totals summary present');
+});
+
 test('name is read from .env when --name is absent', () => {
   // Write a temp .env in the OS temp dir so the real project-root .env is never touched.
   // index.js honours POKER_ENV_PATH when set, so we pass it in the child env.

@@ -3,9 +3,11 @@ const readline = require('readline');
 const argv = require('minimist')(process.argv.slice(2));
 const { loadEnv } = require('./src/config');
 const {
-  parseAllOldFiles, buildDailyPL, buildAllInEV, buildShowdownSplit,
+  parseAllOldFiles, buildDailyPL, buildAllInEV, buildShowdownSplit, buildDailyDetail,
 } = require('./src/parse-files/sync');
-const { renderPLChart, renderEVSummary } = require('./src/helpers');
+const {
+  renderPLChart, renderEVSummary, renderDailyDetail, renderDailySummary,
+} = require('./src/helpers');
 
 console.clear();
 
@@ -26,9 +28,13 @@ const VALID_VIEWS = ['detail', 'graph', 'ev'];
 function runWith(name, view) {
   const anonymousName = argvAnonymyze ? 'JohnDoe' : name;
   if (view === 'graph') {
+    const detail = buildDailyDetail(directoryArgv, timeFilterArgv, name);
     const daily = buildDailyPL(directoryArgv, timeFilterArgv, name);
     console.log('\n');
+    console.log(renderDailyDetail(detail.days));
     console.log(renderPLChart(daily));
+    console.log('\n');
+    console.log(renderDailySummary(detail.totals));
     console.log('\n');
   } else if (view === 'ev') {
     const totals = buildAllInEV(directoryArgv, timeFilterArgv, name);
