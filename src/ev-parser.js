@@ -76,6 +76,10 @@ function parseHandSpot(handText, playerName) {
   const potMatch = handText.match(/Total pot (\d+)/);
   const pot = potMatch ? Number(potMatch[1]) : 0;
 
+  // Big blind of this hand, from the header "Level <roman> (<sb>/<bb>)".
+  const bbMatch = handText.match(/Level [^(]*\((\d+)\/(\d+)\)/);
+  const bb = bbMatch ? Number(bbMatch[2]) : null;
+
   // FIX 1: Sum ALL "<hero> collected N" lines. In a multiway all-in the hero
   // may collect from both a side pot and the main pot on separate lines.
   const escaped = playerName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -102,7 +106,9 @@ function parseHandSpot(handText, playerName) {
   const heroResult = result[heroIndex];
   const equity = (heroResult.getWinsPercentage() + heroResult.getTiesPercentage() / 2) / 100;
 
-  return { equity, pot, actual };
+  return {
+    equity, pot, actual, bb,
+  };
 }
 
 function parseAllInEV(fileContent, playerName) {
@@ -115,15 +121,22 @@ function parseAllInEV(fileContent, playerName) {
     }
   });
 
+  const round1 = (n) => Math.round(n * 10) / 10;
+
   const count = spots.length;
   const actualChips = spots.reduce((s, x) => s + x.actual, 0);
   const evChips = spots.reduce((s, x) => s + round(x.equity * x.pot), 0);
-  const avgEquity = count === 0 ? 0 : spots.reduce((s, x) => s + x.equity, 0) / count;
+  const equitySum = spots.reduce((s, x) => s + x.equity, 0);
+  const avgEquity = count === 0 ? 0 : equitySum / count;
+  const aheadCount = spots.filter((x) => x.equity >= 0.5).length;
+  // bb-denominated totals: per-spot chips/bb, skipping spots with no bb.
+  const actualBb = round1(spots.reduce((s, x) => (x.bb ? s + x.actual / x.bb : s), 0));
+  const evBb = round1(spots.reduce((s, x) => (x.bb ? s + (x.equity * x.pot) / x.bb : s), 0));
 
   return {
     spots,
     totals: {
-      count, actualChips, evChips, avgEquity,
+      count, actualChips, evChips, avgEquity, aheadCount, actualBb, evBb,
     },
   };
 }

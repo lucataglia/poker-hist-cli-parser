@@ -73,3 +73,17 @@ test('parseAllInEV: 3-way all-in with one muck -> spot excluded (0 spots)', () =
   // Villain2 mucks: we can't correctly compute equity without all revealed cards
   assert.strictEqual(spots.length, 0);
 });
+
+test('parseAllInEV: spot carries the hand big blind and bb/ahead aggregates', () => {
+  // Fixture 6 is a Level V (40/80) hand: bb = 80. Hero all-in preflop, equity ~0.18,
+  // pot 300, actual 0 (lost). One spot.
+  const CASHED_2ND = "HH20260706 T1000000006 No Limit Hold'em €0,91 + €0,09.txt";
+  const { spots, totals } = parseAllInEV(read(CASHED_2ND), 'TestHero');
+  assert.strictEqual(spots.length, 1);
+  assert.strictEqual(spots[0].bb, 80, 'bb parsed from Level (40/80)');
+  // ahead: equity < 0.5 here, so aheadCount 0.
+  assert.strictEqual(totals.aheadCount, 0);
+  // actualBb = 0 (lost); evBb = round1(equity*pot / bb) summed.
+  assert.strictEqual(totals.actualBb, 0);
+  assert.ok(totals.evBb > 0, 'evBb positive');
+});
