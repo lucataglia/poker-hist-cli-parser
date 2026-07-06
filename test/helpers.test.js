@@ -196,3 +196,51 @@ test('renderEVSummary: omits split rows when sd/nonSd absent', () => {
   }));
   assert.ok(!out.includes('Non-showdown'), 'no split rows without data');
 });
+
+const { renderDailyDetail, renderDailySummary } = require('../src/helpers');
+
+test('renderDailyDetail: prints date header and one line per tournament', () => {
+  const out = stripAnsi(renderDailyDetail([
+    {
+      date: '20260704',
+      tournaments: [
+        {
+          buyIn: 1, prizePool: 8, position: 2, net: 1, isSpin: true,
+        },
+        {
+          buyIn: 1, prizePool: null, position: 3, net: -1, isSpin: false,
+        },
+      ],
+    },
+  ]));
+  assert.ok(out.includes('04 Jul 2026'), 'date header');
+  assert.ok(/Spin&Go/.test(out), 'spin label when prizePool present');
+  assert.ok(out.includes('[8'), 'prize pool shown for spin');
+  assert.ok(/\btorneo\b/.test(out), 'torneo label when no prizePool');
+  assert.ok(!/torneo.*\[/.test(out), 'no bracket for non-spin');
+  assert.ok(out.includes('2') && out.includes('3'), 'positions shown');
+});
+
+test('renderDailySummary: shows won/lost/played and net', () => {
+  const out = stripAnsi(renderDailySummary({
+    won: 43, lost: 79, played: 122, netTotal: -12.5,
+  }));
+  assert.ok(out.includes('43'), 'won');
+  assert.ok(out.includes('79'), 'lost');
+  assert.ok(out.includes('122'), 'played');
+  assert.ok(out.includes('12.5'), 'net total');
+});
+
+test('renderDailyDetail: net colored (green positive, red negative)', () => {
+  const prev = chalk.level;
+  chalk.level = 3;
+  const raw = renderDailyDetail([{
+    date: '20260704',
+    tournaments: [{
+      buyIn: 1, prizePool: 8, position: 1, net: 7, isSpin: true,
+    }],
+  }]);
+  chalk.level = prev;
+  // eslint-disable-next-line no-control-regex
+  assert.ok(/\[32m/.test(raw), 'green for positive net');
+});

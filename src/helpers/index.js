@@ -280,6 +280,37 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 
+// One line per tournament under each day header.
+function renderDailyDetail(days) {
+  if (!days || days.length === 0) {
+    return '';
+  }
+  const lines = [];
+  days.forEach((day) => {
+    lines.push(chalk.bold(formatDateLong(day.date)));
+    day.tournaments.forEach((t) => {
+      const label = t.isSpin ? 'Spin&Go' : 'torneo';
+      const pool = t.isSpin ? ` [${t.prizePool}€]` : '';
+      const pos = t.position ? `${t.position}°` : '-';
+      const netStr = `${t.net >= 0 ? '+' : ''}${t.net.toFixed(2)}€`;
+      const netColored = t.net >= 0 ? chalk.green(netStr) : chalk.red(netStr);
+      lines.push(`  ${label} ${t.buyIn}€${pool}  ${pos}  ${netColored}`);
+    });
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+// Overall totals line.
+function renderDailySummary(totals) {
+  const {
+    won, lost, played, netTotal,
+  } = totals;
+  const netStr = `${netTotal >= 0 ? '+' : ''}${netTotal.toFixed(2)}€`;
+  const netColored = netTotal >= 0 ? chalk.green(netStr) : chalk.red(netStr);
+  return `Vinti (ITM): ${won}   Persi: ${lost}   Giocate: ${played}   Netto: ${netColored}`;
+}
+
 // Summary box for the all-in EV view. luck = actualChips - evChips: green when
 // running at/above expectation, red when below.
 function renderEVSummary(totals) {
@@ -344,6 +375,8 @@ module.exports = {
   prettyBoard,
   prettyHand,
   printEquityStats,
+  renderDailyDetail,
+  renderDailySummary,
   renderEVSummary,
   renderPLChart,
   round2,
