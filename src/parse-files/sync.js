@@ -7,6 +7,7 @@ const {
 } = require('../helpers');
 const { parsePL } = require('../pl-parser');
 const { parseAllInEV } = require('../ev-parser');
+const { parseShowdownSplit } = require('../lines-parser');
 
 function parseFileSync(filePath, filename, argvName, displayName, isLast) {
   const headerName = displayName || argvName;
@@ -147,8 +148,40 @@ function buildAllInEV(directory, timeFilter, playerName) {
   };
 }
 
+function buildShowdownSplit(directory, timeFilter, playerName) {
+  const filter = Number(timeFilter);
+  const files = fs.readdirSync(directory)
+    .filter((file) => file.startsWith('HH'))
+    .filter((file) => {
+      const time = extractTimeFromFilename(file);
+      return time !== null && Number(time) >= filter;
+    });
+
+  let sdChips = 0;
+  let nonSdChips = 0;
+  let sdBb = 0;
+  let nonSdBb = 0;
+  let hands = 0;
+
+  files.forEach((filename) => {
+    const content = fs.readFileSync(path.join(directory, filename), 'utf8');
+    const r = parseShowdownSplit(content, playerName);
+    sdChips += r.sdChips;
+    nonSdChips += r.nonSdChips;
+    sdBb += r.sdBb;
+    nonSdBb += r.nonSdBb;
+    hands += r.hands;
+  });
+
+  const round1 = (n) => Math.round(n * 10) / 10;
+  return {
+    sdChips, nonSdChips, sdBb: round1(sdBb), nonSdBb: round1(nonSdBb), hands,
+  };
+}
+
 module.exports = {
   parseAllOldFiles,
   buildDailyPL,
   buildAllInEV,
+  buildShowdownSplit,
 };
