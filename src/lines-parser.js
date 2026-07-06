@@ -62,8 +62,12 @@ function netByActions(handText, playerName, escapedName) {
       if (idx === 0 && bbMatch) { blinds += Number(bbMatch[1]); }
       if (ante) { blinds += Number(ante[1]); }
     });
-    // On the preflop street, blinds are part of the "to" for a raiser, or add to call/bet.
-    const streetCommit = Math.max(sumCallBet + blinds, maxRaiseTo);
+    // On the preflop street, blinds are embedded in the "to" amount for a raise.
+    // When hero raises and later calls (re-raise scenario), both amounts add up.
+    // When hero only calls/bets (no raise), add blinds since they aren't embedded.
+    const streetCommit = maxRaiseTo > 0
+      ? maxRaiseTo + sumCallBet
+      : sumCallBet + blinds;
     contribution += streetCommit;
   });
 

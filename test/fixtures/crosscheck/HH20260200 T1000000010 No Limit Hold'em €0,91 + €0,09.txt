@@ -1,0 +1,120 @@
+PokerStars Hand #100000000010: Tournament #1000000010, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0010] - 2026/02/01 10:00:00 CET [2026/02/01 04:00:00 ET]
+Table '1000000010 1' 3-max Seat #1 is the button
+Seat 1: Villain1 (500 in chips)
+Seat 2: TestHero (500 in chips)
+Seat 3: Villain2 (500 in chips)
+TestHero: posts small blind 10
+Villain2: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [2c 7d]
+Villain1: folds
+TestHero: folds
+Villain2 collected 20 from pot
+*** SUMMARY ***
+Total pot 20 | Rake 0
+Seat 1: Villain1 (button) folded before Flop (didn't bet)
+Seat 2: TestHero (small blind) folded before Flop
+Seat 3: Villain2 (big blind) collected (20)
+PokerStars Hand #100000000011: Tournament #1000000010, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0010] - 2026/02/01 10:01:00 CET [2026/02/01 04:01:00 ET]
+Table '1000000010 1' 3-max Seat #2 is the button
+Seat 1: Villain1 (500 in chips)
+Seat 2: TestHero (490 in chips)
+Seat 3: Villain2 (510 in chips)
+Villain2: posts small blind 10
+Villain1: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Ah Kd]
+TestHero: raises 40 to 60
+Villain2: folds
+Villain1: folds
+Uncalled bet (40) returned to TestHero
+TestHero collected 40 from pot
+*** SUMMARY ***
+Total pot 40 | Rake 0
+Seat 1: Villain1 (big blind) folded before Flop
+Seat 2: TestHero (button) collected (40)
+Seat 3: Villain2 (small blind) folded before Flop
+PokerStars Hand #100000000012: Tournament #1000000010, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0010] - 2026/02/01 10:02:00 CET [2026/02/01 04:02:00 ET]
+Table '1000000010 1' 3-max Seat #3 is the button
+Seat 1: Villain1 (460 in chips)
+Seat 2: TestHero (510 in chips)
+Seat 3: Villain2 (530 in chips)
+Villain1: posts small blind 10
+TestHero: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Ks Qh]
+Villain2: raises 40 to 60
+Villain1: folds
+TestHero: calls 40
+*** FLOP *** [Kd 7s 2c]
+TestHero: checks
+Villain2: checks
+*** TURN *** [Kd 7s 2c] [3h]
+TestHero: checks
+Villain2: checks
+*** RIVER *** [Kd 7s 2c 3h] [9s]
+TestHero: checks
+Villain2: bets 40
+TestHero: calls 40
+*** SHOW DOWN ***
+TestHero: shows [Ks Qh] (a pair of Kings)
+Villain2: shows [Ad 4d] (high card Ace)
+TestHero collected 200 from pot
+*** SUMMARY ***
+Total pot 200 | Rake 0
+Board [Kd 7s 2c 3h 9s]
+Seat 1: Villain1 (small blind) folded before Flop
+Seat 2: TestHero (big blind) showed [Ks Qh] and won (200) with a pair of Kings
+Seat 3: Villain2 (button) showed [Ad 4d] and lost with high card Ace
+PokerStars Hand #100000000013: Tournament #1000000010, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0010] - 2026/02/01 10:03:00 CET [2026/02/01 04:03:00 ET]
+Table '1000000010 1' 3-max Seat #1 is the button
+Seat 1: Villain1 (450 in chips)
+Seat 2: TestHero (610 in chips)
+Seat 3: Villain2 (440 in chips)
+TestHero: posts small blind 10
+Villain2: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Ac Kc]
+Villain1: folds
+TestHero: raises 490 to 500 and is all-in
+Villain2: calls 420 and is all-in
+Uncalled bet (60) returned to TestHero
+*** FLOP *** [2h 7d Ts]
+*** TURN *** [2h 7d Ts] [5c]
+*** RIVER *** [2h 7d Ts 5c] [8h]
+*** SHOW DOWN ***
+TestHero: shows [Ac Kc] (high card Ace)
+Villain2: shows [Qd Jd] (high card Queen)
+TestHero collected 880 from pot
+*** SUMMARY ***
+Total pot 880 | Rake 0
+Board [2h 7d Ts 5c 8h]
+Seat 1: Villain1 (button) folded before Flop (didn't bet)
+Seat 2: TestHero (small blind) showed [Ac Kc] and won (880) with high card Ace
+Seat 3: Villain2 (big blind) showed [Qd Jd] and lost with high card Queen
+Villain2 finished the tournament in 3rd place
+PokerStars Hand #100000000014: Tournament #1000000010, €0.91+€0.09 EUR Hold'em No Limit - Level I (10/20) [ADM ID: TESTAAAA0010] - 2026/02/01 10:04:00 CET [2026/02/01 04:04:00 ET]
+Table '1000000010 1' 2-max Seat #2 is the button
+Seat 1: Villain1 (450 in chips)
+Seat 2: TestHero (1050 in chips)
+TestHero: posts small blind 10
+Villain1: posts big blind 20
+*** HOLE CARDS ***
+Dealt to TestHero [Th 9h]
+TestHero: raises 40 to 60
+Villain1: raises 390 to 450 and is all-in
+TestHero: calls 390
+*** FLOP *** [2c 4d Kh]
+*** TURN *** [2c 4d Kh] [7s]
+*** RIVER *** [2c 4d Kh 7s] [3d]
+*** SHOW DOWN ***
+TestHero: shows [Th 9h] (high card King)
+Villain1: shows [As Ad] (a pair of Aces)
+Villain1 collected 900 from pot
+Villain1 wins the tournament and receives €2.00 - congratulations!
+TestHero finished the tournament in 2nd place and received €0.00.
+*** SUMMARY ***
+Total pot 900 | Rake 0
+Board [2c 4d Kh 7s 3d]
+Seat 1: Villain1 (big blind) showed [As Ad] and won (900) with a pair of Aces
+Seat 2: TestHero (button) (small blind) showed [Th 9h] and lost with high card King
