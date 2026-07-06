@@ -179,9 +179,59 @@ function buildShowdownSplit(directory, timeFilter, playerName) {
   };
 }
 
+function buildDailyDetail(directory, timeFilter, playerName) {
+  const filter = Number(timeFilter);
+  const files = fs.readdirSync(directory)
+    .filter((file) => file.startsWith('HH'))
+    .filter((file) => {
+      const time = extractTimeFromFilename(file);
+      return time !== null && Number(time) >= filter;
+    })
+    .sort((a, b) => a.localeCompare(b));
+
+  const byDay = new Map();
+  let won = 0;
+  let lost = 0;
+  let played = 0;
+  let netTotal = 0;
+
+  files.forEach((filename) => {
+    const date = extractTimeFromFilename(filename);
+    const content = fs.readFileSync(path.join(directory, filename), 'utf8');
+    const {
+      pl, prize, position, prizePool, buyIn,
+    } = parsePL(content, playerName);
+
+    const tournament = {
+      buyIn,
+      prizePool,
+      position,
+      net: pl,
+      isSpin: prizePool !== null,
+    };
+
+    const entry = byDay.get(date) || { date, tournaments: [] };
+    entry.tournaments.push(tournament);
+    byDay.set(date, entry);
+
+    played += 1;
+    if (prize > 0) { won += 1; } else { lost += 1; }
+    netTotal = Math.round((netTotal + pl) * 100) / 100;
+  });
+
+  const days = [...byDay.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return {
+    days,
+    totals: {
+      won, lost, played, netTotal,
+    },
+  };
+}
+
 module.exports = {
   parseAllOldFiles,
   buildDailyPL,
   buildAllInEV,
   buildShowdownSplit,
+  buildDailyDetail,
 };
