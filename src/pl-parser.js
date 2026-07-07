@@ -64,14 +64,22 @@ function parsePrizePool(fileContent) {
   return m ? parseFloat(m[1].replace(',', '.')) : null;
 }
 
+// Table size from the header, e.g. "Table '... ' 3-max Seat #1 is the button"
+// -> "3-max". null if absent.
+function parseTableSize(fileContent) {
+  const m = fileContent.match(/Table '[^']+' (\d+-max)/);
+  return m ? m[1] : null;
+}
+
 function parsePL(fileContent, playerName) {
   const buyIn = parseBuyIn(fileContent);
   const prize = parsePrize(fileContent, playerName);
   const won = parseWon(fileContent, playerName);
   const position = parsePosition(fileContent, playerName);
   const prizePool = parsePrizePool(fileContent);
+  const tableSize = parseTableSize(fileContent);
   return {
-    prize, buyIn, pl: round2(prize - buyIn), won, position, prizePool,
+    prize, buyIn, pl: round2(prize - buyIn), won, position, prizePool, tableSize,
   };
 }
 

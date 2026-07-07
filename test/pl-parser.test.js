@@ -11,6 +11,11 @@ const read = (name) => fs.readFileSync(path.join(FIXTURES, name), 'utf8');
 const LOST = "HH20260101 T1000000001 No Limit Hold'em €0,91 + €0,09.txt";
 const WON = "HH20260102 T1000000002 No Limit Hold'em €0,91 + €0,09.txt";
 
+test('parsePL: reports table size from the header', () => {
+  assert.strictEqual(parsePL(read(WON), 'TestHero').tableSize, '2-max');
+  assert.strictEqual(parsePL(read(LOST), 'TestHero').tableSize, '3-max');
+});
+
 test('parsePL: hero busts without cashing -> pl = -buyIn, not won', () => {
   const r = parsePL(read(LOST), 'TestHero');
   assert.strictEqual(r.prize, 0);

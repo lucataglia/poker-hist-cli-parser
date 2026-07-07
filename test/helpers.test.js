@@ -199,26 +199,31 @@ test('renderEVSummary: omits split rows when sd/nonSd absent', () => {
 
 const { renderDailyDetail, renderDailySummary } = require('../src/helpers');
 
-test('renderDailyDetail: prints date header and one line per tournament', () => {
+test('renderDailyDetail: prints date header and one aligned line per tournament', () => {
   const out = stripAnsi(renderDailyDetail([
     {
       date: '20260704',
       tournaments: [
         {
-          buyIn: 1, prizePool: 8, position: 2, net: 1, isSpin: true,
+          buyIn: 1, prizePool: 8, position: 2, net: 1, tableSize: '3-max',
         },
         {
-          buyIn: 1, prizePool: null, position: 3, net: -1, isSpin: false,
+          buyIn: 1, prizePool: null, position: 3, net: -1, tableSize: '3-max',
         },
       ],
     },
   ]));
   assert.ok(out.includes('04 Jul 2026'), 'date header');
-  assert.ok(/Spin&Go/.test(out), 'spin label when prizePool present');
-  assert.ok(out.includes('[8'), 'prize pool shown for spin');
-  assert.ok(/\btorneo\b/.test(out), 'torneo label when no prizePool');
-  assert.ok(!/torneo.*\[/.test(out), 'no bracket for non-spin');
-  assert.ok(out.includes('2') && out.includes('3'), 'positions shown');
+  assert.ok(/3-max/.test(out), 'table size label from header');
+  assert.ok(!/Spin&Go|torneo/.test(out), 'no Spin&Go/torneo label anymore');
+  assert.ok(out.includes('[8'), 'prize pool shown when present');
+  // The no-prizePool row shows no bracket.
+  const rows = out.split('\n').filter((l) => l.includes('3-max'));
+  const noPoolRow = rows.find((l) => l.includes('3°'));
+  assert.ok(!noPoolRow.includes('['), 'no bracket when prizePool absent');
+  assert.ok(out.includes('2°') && out.includes('3°'), 'positions shown');
+  // All tournament rows are padded to the same visible length (aligned output).
+  assert.strictEqual(rows[0].length, rows[1].length, 'rows aligned to equal width');
 });
 
 test('renderDailySummary: shows won/lost/played and net', () => {
@@ -237,7 +242,7 @@ test('renderDailyDetail: net colored (green positive, red negative)', () => {
   const raw = renderDailyDetail([{
     date: '20260704',
     tournaments: [{
-      buyIn: 1, prizePool: 8, position: 1, net: 7, isSpin: true,
+      buyIn: 1, prizePool: 8, position: 1, net: 7, tableSize: '3-max',
     }],
   }]);
   chalk.level = prev;

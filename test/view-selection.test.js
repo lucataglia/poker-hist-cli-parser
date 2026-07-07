@@ -47,7 +47,7 @@ test('--view=ev output includes the showdown split rows', () => {
 
 test('--view=graph includes per-day detail and totals summary', () => {
   const out = runCli(['--view=graph']);
-  assert.ok(/Spin&Go|torneo/.test(out), 'per-tournament rows present');
+  assert.ok(/-max/.test(out), 'per-tournament rows present (table size label)');
   assert.ok(out.includes('Giocate:'), 'totals summary present');
 });
 

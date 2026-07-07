@@ -199,7 +199,7 @@ function buildDailyDetail(directory, timeFilter, playerName) {
     const date = extractTimeFromFilename(filename);
     const content = fs.readFileSync(path.join(directory, filename), 'utf8');
     const {
-      pl, prize, position, prizePool, buyIn,
+      pl, prize, position, prizePool, buyIn, tableSize,
     } = parsePL(content, playerName);
 
     const tournament = {
@@ -207,7 +207,7 @@ function buildDailyDetail(directory, timeFilter, playerName) {
       prizePool,
       position,
       net: pl,
-      isSpin: prizePool !== null,
+      tableSize,
     };
 
     const entry = byDay.get(date) || { date, tournaments: [] };

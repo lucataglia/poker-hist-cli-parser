@@ -285,16 +285,31 @@ function renderDailyDetail(days) {
   if (!days || days.length === 0) {
     return '';
   }
+  // Build plain (uncolored) cells first so columns pad to equal width; color is
+  // applied to the net cell AFTER padding so ANSI codes never distort alignment.
+  const cell = (t) => ({
+    label: t.tableSize || 'tournament',
+    buyIn: `${t.buyIn}€`,
+    pool: t.prizePool !== null ? `[${t.prizePool}€]` : '',
+    pos: t.position ? `${t.position}°` : '-',
+    net: `${t.net >= 0 ? '+' : ''}${t.net.toFixed(2)}€`,
+  });
+  const cells = days.flatMap((d) => d.tournaments).map(cell);
+  const width = (key) => cells.reduce((m, c) => Math.max(m, c[key].length), 0);
+  const wLabel = width('label');
+  const wBuyIn = width('buyIn');
+  const wPool = width('pool');
+  const wPos = width('pos');
+  const wNet = width('net');
+
   const lines = [];
   days.forEach((day) => {
     lines.push(chalk.bold(formatDateLong(day.date)));
     day.tournaments.forEach((t) => {
-      const label = t.isSpin ? 'Spin&Go' : 'torneo';
-      const pool = t.isSpin ? ` [${t.prizePool}€]` : '';
-      const pos = t.position ? `${t.position}°` : '-';
-      const netStr = `${t.net >= 0 ? '+' : ''}${t.net.toFixed(2)}€`;
-      const netColored = t.net >= 0 ? chalk.green(netStr) : chalk.red(netStr);
-      lines.push(`  ${label} ${t.buyIn}€${pool}  ${pos}  ${netColored}`);
+      const c = cell(t);
+      const paddedNet = c.net.padStart(wNet);
+      const netColored = t.net >= 0 ? chalk.green(paddedNet) : chalk.red(paddedNet);
+      lines.push(`  ${c.label.padEnd(wLabel)} ${c.buyIn.padEnd(wBuyIn)} ${c.pool.padEnd(wPool)} ${c.pos.padStart(wPos)}  ${netColored}`);
     });
     lines.push('');
   });
