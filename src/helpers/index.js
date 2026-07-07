@@ -281,6 +281,15 @@ function renderPLChart(dailyData, maxBarWidth = 20) {
 const round2 = (n) => Math.round(n * 100) / 100;
 
 // One line per tournament under each day header.
+function renderDailySummary(totals) {
+  const {
+    won, lost, played, netTotal,
+  } = totals;
+  const netStr = `${netTotal >= 0 ? '+' : ''}${netTotal.toFixed(2)}€`;
+  const netColored = netTotal >= 0 ? chalk.green(netStr) : chalk.red(netStr);
+  return `Vinti (ITM): ${won}   Persi: ${lost}   Giocate: ${played}   Netto: ${netColored}`;
+}
+
 function renderDailyDetail(days) {
   if (!days || days.length === 0) {
     return '';
@@ -311,20 +320,20 @@ function renderDailyDetail(days) {
       const netColored = t.net >= 0 ? chalk.green(paddedNet) : chalk.red(paddedNet);
       lines.push(`  ${c.label.padEnd(wLabel)} ${c.buyIn.padEnd(wBuyIn)} ${c.pool.padEnd(wPool)} ${c.pos.padStart(wPos)}  ${netColored}`);
     });
+    // Per-day recap, same format as the overall summary. A tournament is ITM
+    // (won) when its net beats losing the buy-in (some prize was cashed).
+    const played = day.tournaments.length;
+    const won = day.tournaments.filter((t) => t.net > -t.buyIn).length;
+    const netTotal = round2(day.tournaments.reduce((s, t) => s + t.net, 0));
+    lines.push(`  ${renderDailySummary({
+      won, lost: played - won, played, netTotal,
+    })}`);
     lines.push('');
   });
   return lines.join('\n');
 }
 
 // Overall totals line.
-function renderDailySummary(totals) {
-  const {
-    won, lost, played, netTotal,
-  } = totals;
-  const netStr = `${netTotal >= 0 ? '+' : ''}${netTotal.toFixed(2)}€`;
-  const netColored = netTotal >= 0 ? chalk.green(netStr) : chalk.red(netStr);
-  return `Vinti (ITM): ${won}   Persi: ${lost}   Giocate: ${played}   Netto: ${netColored}`;
-}
 
 // Summary box for the all-in EV view. luck = actualChips - evChips: green when
 // running at/above expectation, red when below.

@@ -226,6 +226,29 @@ test('renderDailyDetail: prints date header and one aligned line per tournament'
   assert.strictEqual(rows[0].length, rows[1].length, 'rows aligned to equal width');
 });
 
+test('renderDailyDetail: appends a per-day recap line after each day', () => {
+  const out = stripAnsi(renderDailyDetail([
+    {
+      date: '20260704',
+      tournaments: [
+        // won €2 net (ITM), buyIn 1
+        {
+          buyIn: 1, prizePool: 8, position: 1, net: 2, tableSize: '3-max',
+        },
+        // lost buy-in (not ITM)
+        {
+          buyIn: 1, prizePool: null, position: 3, net: -1, tableSize: '3-max',
+        },
+      ],
+    },
+  ]));
+  // Per-day recap: 1 won (ITM), 1 lost, 2 played, net +1.00
+  assert.ok(/Vinti \(ITM\): 1\b/.test(out), 'per-day won count');
+  assert.ok(/Persi: 1\b/.test(out), 'per-day lost count');
+  assert.ok(/Giocate: 2\b/.test(out), 'per-day played count');
+  assert.ok(out.includes('+1.00€'), 'per-day net total');
+});
+
 test('renderDailySummary: shows won/lost/played and net', () => {
   const out = stripAnsi(renderDailySummary({
     won: 43, lost: 79, played: 122, netTotal: -12.5,
